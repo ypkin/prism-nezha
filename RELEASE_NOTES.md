@@ -1,11 +1,10 @@
-# Monitor Glass v1.3.0
+# Monitor Glass v1.3.1
 
-Monitor Glass 1.3.0 adapts to Monitor Hub 1.4.0 while preserving the existing interface and layout.
+适配 Monitor Hub v1.4.1，保持现有 UI、配色和布局。
 
-- Receives gzip-compressed public WebSocket snapshots when the browser supports `DecompressionStream`; keeps text-frame compatibility with older hubs and logged-in admin views.
-- Suspends live connections, polling, and in-flight node requests while the page is hidden; immediately fetches a fresh snapshot and reconnects when it returns.
-- Uses the hub-provided `last_seen_ago` for offline duration, with a safe client-clock fallback for older hubs.
-- Uses the hub-overridable `/favicon.svg` and includes an opaque 180×180 iOS touch icon.
-- Keeps the existing lazy-loaded charts, rendering, and page layout.
+- 修复浏览器禁用站点存储时的白屏；存储空间已满时仍可切换深浅色。
+- 验证 WebSocket 连接被拒绝后的定时轮询与重连恢复，兼容 v1.4.1 的匿名连接数量限制。
+- 兼容历史指标新增字段，现有图表不受影响；gzip 节点列表由浏览器自动解压。
+- 精简 README，保留安装、更新和许可证说明。
 
-Install `theme.tar.gz` from the Monitor Hub theme page. The archive includes `dist/`, `theme.json`, and `preview.png`.
+在 Monitor 后台「主题」页更新，或上传本 Release 的 `theme.tar.gz` 安装。

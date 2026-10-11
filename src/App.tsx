@@ -30,7 +30,15 @@ const DARK_MEDIA = matchMedia("(prefers-color-scheme: dark)")
  * listener is otherwise never heard, and the next one is a day away.
  */
 function useTheme() {
-  const [saved, setSaved] = useState(() => localStorage.getItem("theme"))
+  const [saved, setSaved] = useState<"light" | "dark" | null>(() => {
+    try {
+      const value = localStorage.getItem("theme")
+      return value === "light" || value === "dark" ? value : null
+    } catch {
+      // Storage can be disabled for this origin; still follow the system theme.
+      return null
+    }
+  })
   const system = useSyncExternalStore(
     (notify) => {
       DARK_MEDIA.addEventListener("change", notify)
@@ -48,8 +56,12 @@ function useTheme() {
     dark,
     () => {
       const next = dark ? "light" : "dark"
-      localStorage.setItem("theme", next)
       setSaved(next)
+      try {
+        localStorage.setItem("theme", next)
+      } catch {
+        // A blocked or full storage must not prevent switching in this tab.
+      }
     },
   ] as const
 }

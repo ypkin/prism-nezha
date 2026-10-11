@@ -201,6 +201,30 @@ await liveTest(async ({ requests, sockets, errors }) => {
   assert.equal(requests.length, 3, "polling resumes after a failed request")
 })
 
+await liveTest(async ({ requests, sockets, received, errors }) => {
+  // Browsers expose a rejected upgrade (including Hub 1.4.1's 503 cap) as
+  // a socket error, without an HTTP status that the theme can inspect.
+  answer(requests[0], { nodes: [node] })
+  await flush()
+  for (let attempt = 0; attempt < 3; attempt++) {
+    sockets[attempt].onerror?.()
+    assert.equal(sockets[attempt].closed, true)
+    mock.timers.tick(5000)
+    assert.equal(requests.length, attempt + 2, "HTTP snapshots continue while upgrades are rejected")
+    assert.equal(sockets.length, attempt + 2, "retrying an upgrade is delayed, not a busy loop")
+    answer(requests[attempt + 1], { nodes: [{ ...node, metrics: { ...node.metrics!, cpu: attempt + 10 } }] })
+    await flush()
+    assert.equal(received.at(-1)?.[0].metrics?.cpu, attempt + 10)
+  }
+  sockets[3].message({ nodes: [changed] })
+  await flush()
+  const count = requests.length
+  mock.timers.tick(10000)
+  await flush()
+  assert.equal(requests.length, count, "successful recovery stops fallback requests")
+  assert.equal(errors.length, 0)
+})
+
 await liveTest(async ({ requests, sockets, received, errors, stop }) => {
   sockets[0].close()
   stop()

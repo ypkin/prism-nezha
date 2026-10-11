@@ -1,8 +1,8 @@
 {
   "name": "Monitor Glass",
   "short": "glass",
-  "description": "独立 Monitor 公开页主题：Once UI 中性视觉、统一服务器卡片与高性能节点详情",
-  "version": "1.3.0",
+  "description": "简洁的 Monitor 公开状态页主题，支持深浅色、移动端和历史图表",
+  "version": "1.3.1",
   "author": "wxte",
   "url": "https://github.com/wxte/Monitor-Glass"
 }

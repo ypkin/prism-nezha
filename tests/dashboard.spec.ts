@@ -1,6 +1,48 @@
 import { test, expect } from "@playwright/test"
 import { history, nodes } from "./fixtures.mjs"
 
+test("blocked site storage keeps the list, theme toggle and monitoring usable", async ({ page }) => {
+  const errors: string[] = []
+  page.on("pageerror", (error) => errors.push(error.message))
+  await page.addInitScript(() => {
+    Object.defineProperty(window, "localStorage", {
+      get() { throw new DOMException("Site data disabled", "SecurityError") },
+    })
+  })
+  await page.emulateMedia({ colorScheme: "dark" })
+  await page.goto("/")
+  await expect(page.getByRole("button", { name: "查看 Tokyo 详情", exact: true })).toBeVisible()
+  await expect(page.locator("html")).toHaveClass(/dark/)
+  await page.emulateMedia({ colorScheme: "light" })
+  await expect(page.locator("html")).not.toHaveClass(/dark/)
+  await page.getByRole("button", { name: "切换主题", exact: true }).click()
+  await expect(page.locator("html")).toHaveClass(/dark/)
+  await page.getByRole("button", { name: "按CPU排序", exact: true }).click()
+  await expect(page.getByLabel("服务器排序")).toHaveValue("cpu")
+  await page.locator("nav").getByRole("link", { name: "监控", exact: true }).click()
+  await expect(page.locator(".monitor-chart-card")).toHaveCount(5)
+  await expect(page.locator(".monitor-chart-card .recharts-surface").first()).toBeVisible()
+  expect(errors).toEqual([])
+})
+
+test("full storage still allows changing the theme for this tab", async ({ page }) => {
+  const errors: string[] = []
+  page.on("pageerror", (error) => errors.push(error.message))
+  await page.addInitScript(() => {
+    localStorage.setItem("theme", "dark")
+    Storage.prototype.setItem = () => { throw new DOMException("Storage full", "QuotaExceededError") }
+  })
+  await page.goto("/")
+  await expect(page.locator("html")).toHaveClass(/dark/)
+  await page.getByRole("button", { name: "切换主题", exact: true }).click()
+  await expect(page.locator("html")).not.toHaveClass(/dark/)
+  await page.emulateMedia({ colorScheme: "dark" })
+  await expect(page.locator("html")).not.toHaveClass(/dark/)
+  await page.getByRole("button", { name: "切换主题", exact: true }).click()
+  await expect(page.locator("html")).toHaveClass(/dark/)
+  expect(errors).toEqual([])
+})
+
 test("search, empty state and status filters preserve the fleet summary", async ({ page }) => {
   await page.goto("/")
   await expect(page.locator('link[rel="icon"]')).toHaveAttribute("href", "/favicon.svg")
@@ -522,7 +564,7 @@ for (const width of [320, 375, 390, 768, 1440, 1920]) {
     const searchShape = await page.getByRole("searchbox").evaluate((el) => ({ radius: parseFloat(getComputedStyle(el).borderRadius), height: el.getBoundingClientRect().height }))
     expect(cardShape.radius).toBeGreaterThanOrEqual(cardShape.height / 2)
     expect(searchShape.radius).toBeGreaterThanOrEqual(searchShape.height / 2)
-    // The summary stays in one row, including the green all-online tag.
+    // The summary stays in one row without the redundant all-online tag.
     const summary = page.locator(".server-summary-row")
     expect(await summary.evaluate((el) => Math.abs(el.children[0].getBoundingClientRect().top - el.children[1].getBoundingClientRect().top))).toBeLessThan(2)
     await expect(page.locator(".summary-online-tag")).toHaveCount(0)
