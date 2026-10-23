@@ -16,7 +16,7 @@ Prism 是哪吒 v0 面板（nezha-zero）的第三方前端主题。本仓库提
 
 ```bash
 cd /opt
-wget https://github.com/ypkin/prism-nezha/releases/download/v1.0.1/prism-deploy.zip
+wget https://github.com/ypkin/prism-nezha/releases/latest/download/prism-deploy.zip
 unzip prism-deploy.zip -d prism
 cd prism
 ls
