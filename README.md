@@ -16,7 +16,7 @@ Prism 是哪吒 v0 面板（nezha-zero）的第三方前端主题。本仓库提
 
 ```bash
 cd /opt
-wget https://github.com/ypkin/prism-nezha/releases/download/v1.0.0/prism-deploy.zip
+wget https://github.com/ypkin/prism-nezha/releases/download/v1.0.1/prism-deploy.zip
 unzip prism-deploy.zip -d prism
 cd prism
 ls
@@ -192,6 +192,16 @@ docker compose up -d --build
 ```
 
 静态文件带 hash 且长缓存，用户刷新即可拿到新版，不用清缓存。
+
+## v1.0.1 界面调整
+
+v1.0.1 在 v1.0.0 基础上叠加了一套界面微调补丁，部署包已自带，无需额外操作：
+
+- 移动端详情卡：保持 2×2 田字格、每行单行不折行；行距统一；Speed 行箭头与数字同基线
+- PC 节点表：列更紧凑、间距统一、表头与数据对齐；面板定宽 1250px 居中，两侧空边精确一致
+- 顶栏与过滤按钮行与面板同宽；过滤按钮去掉点阵纹理；PC 详情卡字体放大
+
+补丁实现：`dist/assets/prism-mobile-fix-v15.css`，由 `dist/index.html` 在主题样式之后以一行 `<link>` 引用。日常更新若只替换 dist 里的部分文件，注意保留这个 css 文件和 index.html 里的引用行，否则界面会回到主题原样。
 
 ## 常见问题
 
