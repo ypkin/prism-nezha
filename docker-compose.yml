@@ -1,0 +1,13 @@
+services:
+  glass:
+    build: .
+    image: glass-frontend:latest
+    container_name: glass-frontend
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8084:80"
+    environment:
+      - DOMAIN=_
+      # 哪吒 v0 面板地址，必须以 / 结尾
+      - NEZHA=http://127.0.0.1:8008/
+      - NEZHA_ORIGIN=http://127.0.0.1:8008

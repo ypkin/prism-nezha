@@ -1,0 +1,109 @@
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
+}
+
+server {
+    listen 80;
+    server_name ${DOMAIN};
+    client_max_body_size 100m;
+
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # Monitor Glass 前端本体（SPA）
+    location = / {
+        try_files /index.html =404;
+        add_header Cache-Control "no-cache, must-revalidate";
+    }
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+    location /assets/ {
+        try_files $uri =404;
+        add_header Cache-Control "public, max-age=31536000, immutable";
+    }
+
+    # Monitor Glass 适配层：面板首页快照（内含服务器列表与 PublicNote）
+    location = /panel-snapshot {
+        proxy_pass ${NEZHA};
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+    # 主题里的「登录」入口指向 /admin/，转到面板登录页
+    location = /admin {
+        return 302 /login;
+    }
+    location = /admin/ {
+        return 302 /login;
+    }
+
+    # 哪吒 v0 实时数据（v190 的唯一后端通道）
+    location /ws {
+        proxy_pass ${NEZHA}ws;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+
+
+    # 面板后台入口：登录页与管理 SPA 整段透传给面板（不带 URI 的 proxy_pass 保持原路径）
+    location = /login {
+        proxy_pass ${NEZHA_ORIGIN};
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+    location ^~ /dashboard {
+        proxy_pass ${NEZHA_ORIGIN};
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+
+    # 面板 OAuth 登录回调（GitHub 登录等）
+    location ^~ /oauth2 {
+        proxy_pass ${NEZHA_ORIGIN};
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # 面板静态资源：渲染器 mixin.js、Vue/jQuery/echarts 都从这里加载
+    location /static/ {
+        proxy_pass ${NEZHA}static/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # 保险：主题或后续版本可能用到的后端路径，透传给面板
+    location /api/ {
+        proxy_pass ${NEZHA}api/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+    location = /service {
+        proxy_pass ${NEZHA}service;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
