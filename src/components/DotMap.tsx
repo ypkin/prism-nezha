@@ -25,6 +25,24 @@ const HOT_FAST_COLOR = "#38bdf8"
 const OFFLINE_COLOR = "#fb7185"
 const DOT_R = 0.26
 const DOT_R_M = 0.42
+
+const TAU = 6.2832
+
+/** Fit a canvas to its wrapper (CSS pixels) at device pixel ratio, capped at 3. Returns null when the wrapper has no size. */
+function fitCanvas(wrap: HTMLDivElement, cv: HTMLCanvasElement, ctx: CanvasRenderingContext2D): { w: number; h: number } | null {
+  const w = wrap.clientWidth
+  const h = wrap.clientHeight
+  if (!w || !h) return null
+  const dpr = Math.min(window.devicePixelRatio || 1, 3)
+  const tw = Math.round(w * dpr)
+  const th = Math.round(h * dpr)
+  if (cv.width !== tw || cv.height !== th) {
+    cv.width = tw
+    cv.height = th
+  }
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+  return { w, h }
+}
 /** First mask row below 61°S — Antarctica. Drawn only while a node
  * actually reports AQ; with no node there the continent stays hidden. */
 const AQ_ROW = 112
@@ -130,7 +148,7 @@ function buildMarkers(nodes: Node[]): Marker[] {
 function dotShape(ctx: CanvasRenderingContext2D, cx: number, cy: number, rr: number, round: boolean) {
   if (round) {
     ctx.moveTo(cx + rr, cy)
-    ctx.arc(cx, cy, rr, 0, 6.2832)
+    ctx.arc(cx, cy, rr, 0, TAU)
   } else {
     ctx.rect(cx - rr, cy - rr, rr * 2, rr * 2)
   }
@@ -193,17 +211,9 @@ export function DotMap({ nodes }: { nodes: Node[] }) {
     if (!ctx) return
     let timer: number | undefined
     const draw = () => {
-      const w = wrap.clientWidth
-      const h = wrap.clientHeight
-      if (!w || !h) return
-      const dpr = Math.min(window.devicePixelRatio || 1, 3)
-      const tw = Math.round(w * dpr)
-      const th = Math.round(h * dpr)
-      if (cv.width !== tw || cv.height !== th) {
-        cv.width = tw
-        cv.height = th
-      }
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+      const wh = fitCanvas(wrap, cv, ctx)
+      if (!wh) return
+      const { w, h } = wh
       const isM = window.matchMedia("(max-width: 768px)").matches
       const bits = landBits()
       const cw = w / NZ_LAND.cols
@@ -268,17 +278,9 @@ export function DotMap({ nodes }: { nodes: Node[] }) {
     let raf = 0
     let visible = true
     const drawDots = (t: number) => {
-      const w = wrap.clientWidth
-      const h = wrap.clientHeight
-      if (!w || !h) return
-      const dpr = Math.min(window.devicePixelRatio || 1, 3)
-      const tw = Math.round(w * dpr)
-      const th = Math.round(h * dpr)
-      if (cv.width !== tw || cv.height !== th) {
-        cv.width = tw
-        cv.height = th
-      }
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+      const wh = fitCanvas(wrap, cv, ctx)
+      if (!wh) return
+      const { w, h } = wh
       ctx.clearRect(0, 0, w, h)
       const pitch = w / NZ_LAND.cols
       for (const m of markersRef.current) {
@@ -291,15 +293,15 @@ export function DotMap({ nodes }: { nodes: Node[] }) {
         if (hot) {
           const mainHc = m.busy ? HOT_BUSY_COLOR : HOT_FAST_COLOR
           const mph = (t / (m.busy ? 1600 : 2000)) % 1
-          const mrr = pitch * (2.0 + 0.5 * Math.sin(mph * 6.2832)) * scale * MARK_SCALE
+          const mrr = pitch * (2.0 + 0.5 * Math.sin(mph * TAU)) * scale * MARK_SCALE
           ctx.save()
           ctx.strokeStyle = mainHc
-          ctx.globalAlpha = 0.6 + 0.4 * Math.sin(mph * 6.2832)
+          ctx.globalAlpha = 0.6 + 0.4 * Math.sin(mph * TAU)
           ctx.lineWidth = Math.max(2, pitch * 0.3 * MARK_SCALE)
           ctx.shadowColor = mainHc
           ctx.shadowBlur = pitch * 2.4 * MARK_SCALE
           ctx.beginPath()
-          ctx.arc(x, y, mrr, 0, 6.2832)
+          ctx.arc(x, y, mrr, 0, TAU)
           ctx.stroke()
           ctx.restore()
           const icons: { ch: string; hc: string; period: number }[] = []
@@ -311,12 +313,12 @@ export function DotMap({ nodes }: { nodes: Node[] }) {
             ctx.save()
             ctx.fillStyle = "rgba(0,0,0,0.55)"
             ctx.beginPath()
-            ctx.arc(x + ox, y, fs * 0.62, 0, 6.2832)
+            ctx.arc(x + ox, y, fs * 0.62, 0, TAU)
             ctx.fill()
             ctx.restore()
             const ph = (t / ic.period) % 1
             ctx.save()
-            ctx.globalAlpha = 0.6 + 0.4 * Math.sin(ph * 6.2832)
+            ctx.globalAlpha = 0.6 + 0.4 * Math.sin(ph * TAU)
             ctx.font = `${fs}px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif`
             ctx.textAlign = "center"
             ctx.textBaseline = "middle"
@@ -330,7 +332,7 @@ export function DotMap({ nodes }: { nodes: Node[] }) {
             ctx.save()
             ctx.fillStyle = "rgba(0,0,0,0.55)"
             ctx.beginPath()
-            ctx.arc(x, y, Math.max(2, pitch * 0.32 * MARK_SCALE) * 2.4, 0, 6.2832)
+            ctx.arc(x, y, Math.max(2, pitch * 0.32 * MARK_SCALE) * 2.4, 0, TAU)
             ctx.fill()
             ctx.restore()
           }
@@ -339,14 +341,14 @@ export function DotMap({ nodes }: { nodes: Node[] }) {
           ctx.globalAlpha = m.online ? 0.85 : 0.7
           ctx.lineWidth = Math.max(1.5, pitch * 0.22 * MARK_SCALE)
           ctx.beginPath()
-          ctx.arc(x, y, pitch * 1.15 * scale * MARK_SCALE, 0, 6.2832)
+          ctx.arc(x, y, pitch * 1.15 * scale * MARK_SCALE, 0, TAU)
           ctx.stroke()
           ctx.restore()
           ctx.save()
           ctx.fillStyle = mc
           ctx.globalAlpha = m.online ? 0.9 : 0.7
           ctx.beginPath()
-          ctx.arc(x, y, Math.max(2, pitch * 0.32 * MARK_SCALE), 0, 6.2832)
+          ctx.arc(x, y, Math.max(2, pitch * 0.32 * MARK_SCALE), 0, TAU)
           ctx.fill()
           ctx.restore()
         }

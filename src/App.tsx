@@ -147,7 +147,7 @@ export default function App() {
           {/* The stat bar rides in the header on every screen, on the same
               line as the brand, right-aligned. */}
           <div className="mr-1 min-w-0 shrink-0 max-md:mr-0 max-md:[zoom:.9] xl:hidden">
-            {nodes && sorted.length > 0 && <V190StatBar nodes={sorted} bare className="max-lg:text-[11px]" />}
+            {nodes && sorted.length > 0 && <V190StatBar nodes={sorted} className="max-lg:text-[11px]" />}
           </div>
         </div>
       </header>

@@ -132,9 +132,7 @@ function Details({ node }: { node: Node }) {
     : typeof node.last_seen_ago === "number" && Number.isFinite(node.last_seen_ago) && node.last_seen_ago >= 0
       ? node.last_seen_ago
       : node.last_seen > 0 ? Math.max(0, Date.now() / 1000 - node.last_seen) : null
-  const days = typeof node.expires_in === "number" && Number.isFinite(node.expires_in)
-    ? node.expires_in
-    : daysUntil(node.expires_at)
+  const days = daysLeft(node)
 
   // Narrow drawers: a line whose value cannot fit on one line is measured
   // (not guessed), latched, and sunk to the bottom of its group where it
@@ -272,7 +270,6 @@ function Details({ node }: { node: Node }) {
             {node.traffic_limit !== 0 && (
               <L label="套餐流量">{node.traffic_limit < 0 ? "不限量" : bytes(node.traffic_limit)}</L>
             )}
-{}
             {node.traffic_reset_day > 0 && <L label="流量重置">每月 {node.traffic_reset_day} 号</L>}
           </DetailGroup>
         </div>

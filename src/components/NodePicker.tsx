@@ -16,7 +16,7 @@ export function NodePicker({ nodes, selected }: { nodes: Node[]; selected: numbe
   const shown = q ? nodes.filter((n) => `${n.name} ${n.country} ${n.os}`.toLowerCase().includes(q)) : nodes
 
   return (
-    <aside className="node-picker flex min-h-0 flex-col max-md:hidden rounded-2xl border border-border/55 p-2 max-md:max-h-56 md:sticky md:top-16 md:max-h-[calc(100svh-6rem)] md:self-start">
+    <aside className="node-picker flex min-h-0 flex-col max-md:hidden rounded-2xl border border-border/55 p-2 md:sticky md:top-16 md:max-h-[calc(100svh-6rem)] md:self-start">
       <Input type="search" placeholder="Search nodes..." value={query} onChange={(e) => setQuery(e.target.value)} className="h-8 rounded-xl border-border bg-background shadow-none" />
       <nav className="mt-2 flex min-h-0 flex-col gap-1 overflow-y-auto pr-0.5">
         {shown.length === 0 && <p className="py-4 text-center text-xs text-muted-foreground">No matching nodes</p>}

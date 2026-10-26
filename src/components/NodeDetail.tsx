@@ -205,12 +205,18 @@ function despikeWindow(points: { ts: number }[]): number {
 
 // Smooth a short run of neighbouring answers without drawing through timeouts
 // or an offline gap. The underlying samples stay intact for the tooltip.
-function smoothPing(points: PingPoint[], values: (number | null)[], radius: number): (number | null)[] {
+// Smallest positive gap between consecutive samples: the bucket interval.
+function minStep(points: { ts: number }[]): number {
   let step = Infinity
   for (let i = 1; i < points.length; i++) {
     const gap = points[i].ts - points[i - 1].ts
     if (gap > 0) step = Math.min(step, gap)
   }
+  return step
+}
+
+function smoothPing(points: PingPoint[], values: (number | null)[], radius: number): (number | null)[] {
+  const step = minStep(points)
   if (!Number.isFinite(step)) return values
   return values.map((value, i) => {
     if (value === null) return null
@@ -244,11 +250,7 @@ type MetricRow = Point & {
 // A short weighted window softens sample-to-sample jitter while the tooltip
 // continues to report the original reading. Never average across an offline gap.
 function smoothMetric(points: Point[], key: "cpu" | "mem_used" | "disk_used" | "net_rx" | "net_tx", radius: number): number[] {
-  let step = Infinity
-  for (let i = 1; i < points.length; i++) {
-    const gap = points[i].ts - points[i - 1].ts
-    if (gap > 0) step = Math.min(step, gap)
-  }
+  const step = minStep(points)
   return points.map((point, i) => {
     let sum = point[key] * (radius + 1)
     let weight = radius + 1

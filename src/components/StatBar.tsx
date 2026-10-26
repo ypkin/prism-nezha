@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils"
  * aurora dividers. Value slots are fixed-width (6ch rates/totals, 7ch
  * names) so the centred bar does not jitter sideways as values change.
  */
-export function V190StatBar({ nodes, className, bare, variant = "stack" }: { nodes: Node[]; className?: string; bare?: boolean; variant?: "stack" | "line" }) {
+export function V190StatBar({ nodes, className, variant = "stack" }: { nodes: Node[]; className?: string; variant?: "stack" | "line" }) {
   let online = 0
   let rxTotal = 0
   let txTotal = 0
@@ -86,7 +86,7 @@ export function V190StatBar({ nodes, className, bare, variant = "stack" }: { nod
     )
   }
   return (
-    <div className={cn("stat-bar-v190 flex flex-nowrap items-center justify-center text-xs", bare ? "" : "overflow-x-auto rounded-2xl border px-3 py-1.5", className)}>
+    <div className={cn("stat-bar-v190 flex flex-nowrap items-center justify-center text-xs", className)}>
       <div className="flex shrink-0 flex-col items-end leading-[17px]" title="Server online status">
         <div aria-hidden="true" className={offline > 0 ? "nz-pulse-icon" : undefined}>🖥️</div>
         <div className="tnum flex items-center whitespace-nowrap">
