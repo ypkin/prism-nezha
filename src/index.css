@@ -139,21 +139,12 @@
   --border: var(--once-gray-300);
   --input: var(--once-gray-300);
   --ring: var(--once-moss-800);
-  --nav: rgb(24 24 24 / .94);
 
   --solid-brand: var(--once-gray-1000);
   --solid-brand-hover: #ffffff;
   --solid-on-brand: #000000;
   --solid-border: transparent;
   --tag-active-bg: var(--once-gray-300);
-  --tag-active-shadow: 0 2px 8px rgb(0 0 0 / .34), 0 0 0 1px color-mix(in oklab, var(--border) 80%, transparent);
-  --meter-fill: #C6C6BE;
-
-  --chart-1: var(--once-moss-800);
-  --chart-2: oklch(0.7670 0.1165 257.88);
-  --chart-3: var(--once-orange-700);
-  --chart-4: oklch(0.7749 0.1187 288.76);
-  --chart-5: oklch(0.7499 0.1286 192.20);
 
   --bar-track: var(--once-gray-300);
 }
@@ -221,11 +212,6 @@
    Brand Moss is reserved for emphasis; page and loading surfaces stay neutral. */
 .once-backdrop {
   overflow: hidden;
-  background:
-    radial-gradient(48% 22% at 52% 2%, oklch(0.9461 0 0 / .72), transparent 76%),
-    linear-gradient(180deg, rgb(255 255 255 / .42), rgb(255 255 255 / .42)),
-    url("https://v2.xxapi.cn/api/random4kPic?type=wallpaper&return=302") center / cover no-repeat,
-    linear-gradient(180deg, #ffffff 0%, #fcfcfc 48%, #ffffff 100%);
 }
 
 .once-backdrop::before {
@@ -240,14 +226,6 @@
   mask-image: linear-gradient(to bottom, #000 0%, transparent 32%);
 }
 
-.dark .once-backdrop {
-  background:
-    radial-gradient(42% 24% at 52% 2%, oklch(0.3677 0 0 / .26), transparent 76%),
-    linear-gradient(180deg, rgb(0 0 0 / .3), rgb(0 0 0 / .3)),
-    url("https://v2.xxapi.cn/api/random4kPic?type=wallpaper&return=302") center / cover no-repeat,
-    var(--once-gray-100);
-}
-
 .dark .once-backdrop::before {
   opacity: .16;
   background-image: radial-gradient(circle, oklch(0.7636 0 0 / .22) .65px, transparent .75px);
@@ -255,7 +233,6 @@
 
 .once-header {
   border-bottom: 1px solid var(--border);
-  background-color: var(--nav);
   background-image: radial-gradient(transparent 1px, var(--dot-color) 1px);
   background-size: 3px 3px;
   backdrop-filter: blur(14px);
@@ -345,7 +322,6 @@
 .server-card {
   overflow: clip;
   border: 1px solid var(--border);
-  border-radius: 12px;
   /* iOS Safari can retain stale paint coordinates for animated descendants
      across client-side route switches when content-visibility is enabled. */
   content-visibility: visible;
@@ -364,8 +340,6 @@
 .server-metrics {
   overflow: hidden;
   border: 1px solid var(--once-gray-1000);
-  border-radius: 10px;
-  background: var(--once-gray-1200);
 }
 
 .metric-tile {
@@ -424,8 +398,6 @@
   background: var(--card);
 }
 
-.system-detail-card { padding: 15px 17px; }
-
 .monitor-shell {
   overflow: visible;
   border-color: transparent !important;
@@ -444,7 +416,6 @@
 .monitor-chart-card {
   overflow: hidden;
   min-width: 0;
-  box-shadow: none;
 }
 
 .detail-float-card .detail-os-icon {
@@ -544,10 +515,6 @@
   box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--once-gray-700) 18%, transparent);
 }
 
-.dark .status-dot-core {
-  background: var(--once-gray-700);
-}
-
 .dark .status-dot[data-status="online"] .status-dot-halo {
   background: color-mix(in oklab, var(--once-green-700) 18%, var(--once-gray-200));
   box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--once-green-700) 20%, transparent);
@@ -581,10 +548,6 @@
 
   .once-nav {
     border-radius: 11px;
-  }
-
-  .server-card {
-    border-radius: 12px;
   }
 
   .server-summary,
@@ -652,7 +615,6 @@
   --chart-3: var(--once-orange-600);
   --chart-4: var(--once-gray-400);
   --chart-5: var(--once-gray-600);
-  --bar-ok: linear-gradient(to right, var(--once-gray-400), var(--once-gray-300));
 }
 
 .dark {
@@ -761,7 +723,6 @@
 }
 
 .dark .monitor-node-link {
-  border-color: var(--once-gray-400);
   background: var(--once-gray-200);
 }
 
@@ -940,23 +901,14 @@
 
 .server-detail-head {
   border-color: var(--border);
-  background: color-mix(in oklab, var(--background) 94%, transparent);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
 
 .server-detail-close {
-  color: var(--once-gray-500);
   border: 0;
-  background: transparent;
   box-shadow: none;
   -webkit-tap-highlight-color: transparent;
-}
-
-.server-detail-close:hover,
-.server-detail-close:focus-visible {
-  color: var(--once-gray-200);
-  background: var(--once-gray-1100);
 }
 
 .server-detail-close:active {
@@ -1277,7 +1229,7 @@
 .server-sort-direction,
 .server-column-sort,
 .server-clear-filters { transition: background .15s ease, color .15s ease; }
-.server-filter-button { color: var(--muted-foreground); border-radius: 10px; border: 1px solid var(--border); background-color: var(--card); height: 36px; padding: 0 16px; font-size: 13px; font-weight: 600; }
+.server-filter-button { color: var(--muted-foreground); border-radius: 10px; border: 1px solid var(--border); background-color: var(--card); font-size: 13px; font-weight: 600; }
 .server-filter-button[aria-pressed="true"] { color: var(--foreground); background: var(--tag-active-bg); box-shadow: var(--tag-active-shadow); }
 .server-filter-button, .server-filter-button[aria-pressed="true"] { background-image: radial-gradient(transparent 1px, var(--dot-color) 1px); background-size: 3px 3px; }
 .server-monitor-link { color: var(--foreground); border: 1px solid var(--border); background: var(--tag-active-bg); box-shadow: var(--tag-active-shadow); }
@@ -1359,7 +1311,7 @@
 .server-card .compact-card-hit { width: 100%; min-height: 46px; padding: 7px 14px; color: var(--foreground); text-align: left; font-size: 13px; }
 .compact-card-hit:focus-visible { outline: 2px solid var(--foreground); outline-offset: -2px; }
 .compact-card-dot { width: 13px; height: 13px; justify-self: center; }
-.compact-card-badge { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; justify-self: center; font-size: 10px; line-height: 1; }
+.compact-card-badge { display: inline-flex; align-items: center; justify-content: center; gap: 1px; justify-self: center; font-size: 10px; line-height: 1; }
 .compact-card-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; font-weight: 600; line-height: 1.15; }
 .compact-card-region { display: flex; min-width: 0; align-items: center; overflow: hidden; white-space: nowrap; }
 .compact-card-status { display: inline-flex; align-items: center; gap: 3px; }
@@ -1417,13 +1369,8 @@
 .monitor-status-dot { width: 13px; height: 13px; }
 
 @media (min-width: 1000px) {
-  .compact-card-grid { grid-template-columns: 28px minmax(135px, 1.1fr) minmax(52px, .45fr) minmax(105px, .85fr) minmax(130px, 1fr) repeat(3, minmax(75px, .6fr)); }
   .compact-card-system-head { display: block; }
   .compact-card-os { display: inline-flex; }
-}
-
-@media (min-width: 1100px) {
-  .compact-card-grid { grid-template-columns: 28px minmax(175px, .9fr) 72px minmax(130px, .7fr) minmax(145px, 1fr) repeat(3, minmax(85px, .8fr)); }
 }
 
 /* PC-width list columns 在线时间 / 有效期： hidden on narrow screens like the
@@ -1451,7 +1398,6 @@
   .compact-card-speed { text-align: center; }
   .compact-card-head > :nth-child(n + 5) { justify-content: flex-start; text-align: left; }
   .compact-card-head > :nth-child(6), .compact-card-head > :nth-child(7), .compact-card-head > :nth-child(8), .compact-card-head > :nth-child(9), .compact-card-head > :nth-child(10) { justify-content: center; text-align: center; }
-  .compact-card-uptime { text-align: left; }
   .compact-card-expiry { justify-content: flex-end; text-align: right; }
   .compact-card-head .compact-card-expiry { text-align: right; }
   .compact-card-grid { grid-template-columns: 18px minmax(34px, 130px) 46px minmax(104px, .9fr) minmax(68px, 1fr) minmax(58px, .7fr) minmax(64px, .7fr) repeat(3, minmax(60px, .7fr)) minmax(58px, .7fr) minmax(76px, .7fr); gap: 8px; }
@@ -1604,7 +1550,6 @@
   align-items: center;
   gap: 7px;
   padding: 7px 13px;
-  background: rgba(15,23,42,.78);
   border: 1px solid rgba(100,116,139,.45);
   border-radius: 9px;
   font-size: 12.5px;
@@ -1614,7 +1559,6 @@
   user-select: none;
   white-space: nowrap;
   box-shadow: 0 2px 12px rgba(0,0,0,.35);
-  text-shadow: 1px 0 0 #000, -1px 0 0 #000, 0 1px 0 #000, 0 -1px 0 #000;
 }
 .nz-ip-card .nz-ip-flag { font-size: 15px; }
 .nz-ip-card .nz-ip-flag-img { width: 24px; height: 17px; border-radius: 3px; object-fit: cover; display: block; }
@@ -1845,10 +1789,7 @@
   }
 }
 @media (width>=1300px) {
-  .compact-card-grid {
-    grid-template-columns: 24px 100px 54px 124px 82px 124px 124px 78px 78px 78px 100px 56px;
-    gap: 16px; justify-content: start;
-    padding-inline: max(8px, calc((100% - 1198px) / 2)) !important;
+  .compact-card-grid { justify-content: start;
   }
 }
 
@@ -1890,22 +1831,12 @@
     text-align: center; justify-content: center;
   }
 }
-@media (width>=1300px) {
-  /* Tighten the dotted panel around the table: cap the list width and
-     reduce the empty side margins (uniform 20px column gaps kept). */
-  .server-node-list { max-width: 1290px; margin-inline: auto; }
-  .compact-card-grid {
-    gap: 20px;
-    padding-inline: max(8px, calc((100% - 1242px) / 2)) !important;
-  }
-}
 
 /* ===== v7: tighten the Price -> Expiry spacing (fig.2 feedback) ===== */
 @media (width>=1300px) {
   .compact-card-grid {
     grid-template-columns: 24px 100px 54px 124px 82px 124px 124px 78px 78px 78px 84px 50px;
     gap: 18px;
-    padding-inline: max(8px, calc((100% - 1198px) / 2)) !important;
   }
 }
 
@@ -1977,35 +1908,6 @@
    icons to stack vertically (up/down) in the status cell. ===== */
 .compact-card-badge { flex-direction: column !important; }
 
-/* ===== v20: homepage font size +2px, layout dimensions unchanged =====
-   Why the boxes can't move: data rows are pinned by min-height
-   (PC 30px / mobile 28px) and the +2px line boxes stay inside that
-   budget (worst-case normal line-height 1.4 still fits), so row heights
-   stay exactly 30/28px. Grid columns, gaps, paddings, button heights
-   and panel width are untouched.
-   Deliberately NOT enlarged (their boxes have no slack, growing them
-   would move the layout): table header row, top header bar, mobile
-   filter buttons (a wider button row would wrap on phones).
-   Mobile Speed is +1px only (10->11px): its pair slot is a fixed 31px,
-   12px would clip 5-char values like 98.5K. ===== */
-@media (width>=768px) {
-  .server-card .compact-card-hit { font-size: 15px; }
-  .compact-card-name { font-size: 16px; }
-  .compact-card-meter { font-size: 15px; }
-  .compact-card-badge { font-size: 11px; }
-  .server-filter-button { font-size: 15px; }
-}
-@media (width<=767px) {
-  .server-card .compact-card-hit { font-size: 12px; }
-  .compact-card-name { font-size: 12px; }
-  .compact-card-speed-head, .compact-card-speed { font-size: 11px; }
-  .compact-card-meter { font-size: 12px; }
-  .compact-card-badge { font-size: 10px; }
-}
-@media (width<=374px) {
-  .compact-card-speed { font-size: 10px; }
-  .compact-card-meter { font-size: 10px; }
-}
 
 /* ===== v22: macOS-style UI (dark mode), layout dimensions UNCHANGED =====
    Replaces the v21 iOS section. Only colors, font family, corner radii,
@@ -2027,13 +1929,9 @@ body {
 .dark { --meter-fill: #30D158; }
 /* macOS window material: more opaque than iOS sheets, window corner radius */
 .dark .server-node-list {
-  background-color: rgba(30, 30, 32, 0.85) !important;
   background-image: none !important;
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  backdrop-filter: blur(20px) saturate(180%);
   border-color: rgba(255, 255, 255, 0.15) !important;
   border-radius: 12px !important;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.40), 0 2px 8px rgba(0, 0, 0, 0.30) !important;
 }
 .dark .server-node-list > .compact-card-head,
 .dark .server-node-list > article.server-card { background-image: none !important; }
@@ -2053,13 +1951,11 @@ body {
 .dark .status-dot[data-status="offline"] .status-dot-core { background: #FF453A !important; }
 /* macOS push buttons: subtle vertical gradient; active = blue gradient */
 .dark .server-filter-button {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04)) !important;
   border-color: rgba(255, 255, 255, 0.15) !important;
   color: rgba(235, 235, 245, 0.85) !important;
   border-radius: 8px !important;
 }
 .dark .server-filter-button[aria-pressed="true"] {
-  background: linear-gradient(180deg, #2E9BFF, #0A6CFF) !important;
   border-color: transparent !important;
   color: #ffffff !important;
   box-shadow: 0 2px 8px rgba(10, 132, 255, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
@@ -2132,30 +2028,17 @@ body {
 .dark .recharts-cartesian-axis-tick text { fill: rgba(235, 235, 245, 0.6) !important; }
 .dark .recharts-cartesian-grid line { stroke: rgba(255, 255, 255, 0.10) !important; }
 .dark .recharts-default-tooltip, .dark .recharts-tooltip-content {
-  background: rgba(30, 30, 32, 0.92) !important;
   border-color: rgba(255, 255, 255, 0.15) !important;
   border-radius: 10px !important;
 }
 /* Floating tool buttons (theme toggle, back to top): frosted macOS buttons */
 .dark .once-tool-button {
-  background: rgba(30, 30, 32, 0.70) !important;
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
   border-color: rgba(255, 255, 255, 0.15) !important;
   color: #ffffff !important;
 }
 
-/* ===== v25: PC fonts -1px from v20 (slightly smaller), mobile untouched =====
-   PC: row 15->14, name 16->15, meter 15->14, badge 11->10, filter
-   buttons 15->14. Rows stay pinned by min-height 30px, so row heights
-   do not move; smaller text only adds slack, never wraps. ===== */
-@media (width>=768px) {
-  .server-card .compact-card-hit { font-size: 14px; }
-  .compact-card-name { font-size: 15px; }
-  .compact-card-meter { font-size: 14px; }
-  .compact-card-badge { font-size: 10px; }
-  .server-filter-button { font-size: 14px; }
-}
 
 /* ===== v26: PC fonts -1px again (same set as v25), mobile untouched =====
    PC: row 14->13, name 15->14, meter 14->13, badge 10->9, filter
@@ -2203,23 +2086,17 @@ body {
 html:not(.dark) { --meter-fill: #34C759; }
 /* Light window material + window corners + light window shadow */
 html:not(.dark) .server-node-list {
-  background-color: rgba(255, 255, 255, 0.75) !important;
   background-image: none !important;
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  backdrop-filter: blur(20px) saturate(180%);
   border-color: rgba(0, 0, 0, 0.10) !important;
   border-radius: 12px !important;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08) !important;
 }
 html:not(.dark) .server-node-list > .compact-card-head,
 html:not(.dark) .server-node-list > article.server-card { background-image: none !important; }
 /* Rows: white fill + hairlines + macOS list hover */
 html:not(.dark) .server-node-list > article.server-card {
-  background-color: rgba(255, 255, 255, 0.65) !important;
   border-color: rgba(0, 0, 0, 0.08) !important;
   box-shadow: none !important;
 }
-html:not(.dark) .server-node-list > article.server-card:hover { background-color: rgba(0, 0, 0, 0.04) !important; }
 /* Labels: near-black + macOS secondary gray */
 html:not(.dark) .compact-card-head { color: rgba(60, 60, 67, 0.6) !important; }
 html:not(.dark) .server-card .compact-card-hit { color: #1D1D1F !important; }
@@ -2260,7 +2137,6 @@ html:not(.dark) .dot-map-tip {
 }
 /* Detail drawer: light side panel */
 html:not(.dark) .server-detail-drawer {
-  background: rgba(255, 255, 255, 0.88) !important;
   border-left-color: rgba(0, 0, 0, 0.10) !important;
   box-shadow: -12px 0 32px rgba(0, 0, 0, 0.15) !important;
 }
@@ -2292,13 +2168,11 @@ html:not(.dark) .monitor-chip {
 html:not(.dark) .recharts-cartesian-axis-tick text { fill: rgba(60, 60, 67, 0.6) !important; }
 html:not(.dark) .recharts-cartesian-grid line { stroke: rgba(0, 0, 0, 0.08) !important; }
 html:not(.dark) .recharts-default-tooltip, html:not(.dark) .recharts-tooltip-content {
-  background: rgba(255, 255, 255, 0.92) !important;
   border-color: rgba(0, 0, 0, 0.10) !important;
   border-radius: 10px !important;
 }
 /* Floating tool buttons: frosted light */
 html:not(.dark) .once-tool-button {
-  background: rgba(255, 255, 255, 0.70) !important;
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
   border-color: rgba(0, 0, 0, 0.10) !important;
@@ -2311,29 +2185,10 @@ html:not(.dark) .once-header { background-image: none !important; }
 html:not(.dark) ::-webkit-scrollbar { width: 8px; height: 8px; }
 html:not(.dark) ::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.25); border-radius: 4px; }
 html:not(.dark) ::-webkit-scrollbar-track { background: transparent; }
-
-/* ===== v30: light mode transparency made visible =====
-   Why light looked solid: the theme veils the wallpaper itself with a
-   42% white layer in light mode, and the header bar was 94% white
-   (#fffffff0). Panel 75% white on top of that read as opaque. Fix:
-   panel 75%->60% white, header -> 65% white + stronger blur, drawer
-   88%->80% white. Blur keeps text readable over the wallpaper. ===== */
-html:not(.dark) .server-node-list { background-color: rgba(255, 255, 255, 0.60) !important; }
 html:not(.dark) .once-header {
-  background-color: rgba(255, 255, 255, 0.65) !important;
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   backdrop-filter: blur(20px) saturate(180%);
 }
-html:not(.dark) .server-detail-drawer { background: rgba(255, 255, 255, 0.80) !important; }
-
-/* ===== v31: light glass, second pass =====
-   v30 still read near-white in the data area because the rows sit ON
-   the panel: panel 60% white + rows 65% white = ~86% white over the
-   blurred wallpaper. Fix: rows go transparent (hairlines + hover
-   stay, so the list structure is unchanged) and the panel drops to
-   50% white, so the whole table shows the frosted tint. Black text
-   on the light blurred wash stays readable. ===== */
-html:not(.dark) .server-node-list { background-color: rgba(255, 255, 255, 0.50) !important; }
 html:not(.dark) .server-node-list > article.server-card { background-color: transparent !important; }
 html:not(.dark) .server-node-list > article.server-card:hover { background-color: rgba(0, 0, 0, 0.04) !important; }
 
@@ -2374,16 +2229,13 @@ html:not(.dark) .stat-bar-v190 span {
    Unselected buttons now sit on a real frosted pane (blur + tint +
    drop shadow); the pressed blue gradient is left as it was. ===== */
 .dark .server-filter-button:not([aria-pressed="true"]) {
-  background: rgba(28, 28, 30, 0.55) !important;
   -webkit-backdrop-filter: blur(16px) saturate(160%);
   backdrop-filter: blur(16px) saturate(160%);
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
 }
 html:not(.dark) .server-filter-button:not([aria-pressed="true"]) {
   -webkit-backdrop-filter: blur(16px) saturate(160%);
   backdrop-filter: blur(16px) saturate(160%);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
 }
 
 /* ===== v36: filter buttons, light mode — same frosted treatment as
@@ -2401,18 +2253,13 @@ html:not(.dark) .server-filter-button:not([aria-pressed="true"]) {
    of the group filter blocks, so the shine text stays readable over the
    wallpaper. Height matches the filter buttons (36px). */
 .stat-line-capsule {
-  height: 36px;
-  padding: 0 16px;
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.15);
-  background: linear-gradient(180deg, rgba(28, 28, 30, 0.55), rgba(28, 28, 30, 0.45));
   backdrop-filter: blur(16px) saturate(1.4);
   -webkit-backdrop-filter: blur(16px) saturate(1.4);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
 }
 html:not(.dark) .stat-line-capsule {
   border-color: rgba(0, 0, 0, 0.12);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.45));
 }
 
 /* Inline expansion, wide screens: the four overview groups share one row
@@ -2439,7 +2286,6 @@ html:not(.dark) .stat-line-capsule {
   overflow: visible;
   text-overflow: clip;
 }
-
 
 
 /* 田 grid sizes, user-set (labels 9px, values 10px). One gated block with
