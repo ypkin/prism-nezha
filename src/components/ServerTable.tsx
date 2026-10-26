@@ -174,10 +174,10 @@ function PlanTraffic({ node }: { node: Node }) {
 
   return (
     <span className="flex flex-col items-start gap-0.5">
-      <span className="w-full whitespace-nowrap overflow-hidden text-ellipsis text-muted-foreground">
-        今日 / 本月 / 总计 / 剩余（GB）
+      <span className="whitespace-nowrap text-muted-foreground">
+        今日 / 本月 / 总计 ( 剩余GB)
       </span>
-      <span className="w-full whitespace-nowrap overflow-hidden text-ellipsis">
+      <span className="whitespace-nowrap">
         {gbNum(today)}{" / "}{gbNum(month)}{" / "}{total > 0 ? gbNum(total) : "不限量"}{" / "}
         {total > 0 && remaining !== null
           ? (remaining >= 0 ? gbNum(remaining) : `已超 ${gbNum(-remaining)}`)
