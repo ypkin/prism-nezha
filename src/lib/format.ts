@@ -47,6 +47,15 @@ export function axisBytes(v: number): string {
   return bytes(v, v / 1024 ** unit >= 100 ? 0 : 1).replace(".0 ", " ")
 }
 
+/** GB only, for the plan-traffic rows: the user asked for all four figures
+ * in GB. Same decimal rule as bytes() (100+ none, 10+ one, else two),
+ * with a trailing ".0" trimmed so 200 GB does not print as 200.0 GB. */
+export function gb(n: number): string {
+  if (!n || n < 1) return "0GB"
+  const v = n / 1024 ** 3
+  return `${parseFloat(v.toFixed(v >= 100 ? 0 : v >= 10 ? 1 : 2))}GB`
+}
+
 /** Speed text: units are only K or M (never B, GB, or "/s"). */
 export function rate(n: number): string {
   if (!n || n < 1) return "0K"

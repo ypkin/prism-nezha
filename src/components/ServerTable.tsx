@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { V190StatBar } from "@/components/StatBar"
 import { calibrateUsage, usagePasswordSet, type Node } from "@/lib/api"
 import {
-  billingCycle, bytes, compact, daysUntil, dayUsage, distro, money, monthUsage, osName, cpuName, pair,
+  billingCycle, bytes, compact, daysUntil, dayUsage, distro, gb, money, monthUsage, osName, cpuName, pair,
   parseTraffic, percent, rate, uptime,
 } from "@/lib/format"
 import { readListPreferences, saveListPreferences, selectNodes, type NodeSortKey } from "@/lib/node-list"
@@ -173,21 +173,23 @@ function PlanTraffic({ node }: { node: Node }) {
   }
 
   return (
-    <span>
-      <span className="whitespace-nowrap">今日 {bytes(today)}</span>
-      {" / "}
-      <span className="whitespace-nowrap">本月 {bytes(month)}</span>
+    <span className="flex flex-col items-start gap-0.5">
+      <span className="whitespace-nowrap">今日已用：{gb(today)}</span>
+      <span className="whitespace-nowrap">本月已用：{gb(month)}</span>
       {total > 0 && (
         <>
-          {" / "}
-          <span className="whitespace-nowrap">{bytes(total)}</span>
-          {remaining !== null && (
-            <span className="whitespace-nowrap">（{remaining >= 0 ? `剩余 ${bytes(remaining)}` : `已超 ${bytes(-remaining)}`}）</span>
-          )}
+          <span className="whitespace-nowrap">共计流量：{gb(total)}</span>
+          <span className="whitespace-nowrap">
+            {remaining !== null && (remaining >= 0 ? `剩余流量：${gb(remaining)}` : `剩余流量：已超 ${gb(-remaining)}`)}
+          </span>
         </>
       )}
-      {total < 0 && <span className="whitespace-nowrap">（不限量）</span>}
-      {" "}
+      {total < 0 && (
+        <>
+          <span className="whitespace-nowrap">共计流量：不限量</span>
+          <span className="whitespace-nowrap">剩余流量：不限量</span>
+        </>
+      )}
       {editing ? (
         <span className="inline-flex flex-col gap-1">
           <span className="inline-flex flex-nowrap items-center gap-1">

@@ -4,7 +4,7 @@
 //
 // Nothing imports it, so the bundle never includes it.
 import {
-  axisBytes, axisTop, billingCycle, bytes, compact, cpuName, daysUntil, despike, distro, duration, monthUsage, osName, pair,
+  axisBytes, axisTop, billingCycle, bytes, compact, cpuName, daysUntil, despike, distro, duration, gb, monthUsage, osName, pair,
   quarters, timeTicks, uptime,
 } from "./format.ts"
 
@@ -27,6 +27,13 @@ eq(bytes(1024), "1.00 KB", "bytes(1 KiB)")
 eq(bytes(10 * 1024), "10.0 KB", "两位数留一位小数")
 eq(bytes(100 * 1024), "100 KB", "三位数不留小数")
 eq(bytes(1024, 1), "1.0 KB", "digits 覆盖默认档位")
+
+// gb: plan-traffic rows always print GB, same decimal ladder as bytes().
+eq(gb(0), "0GB", "gb(0)")
+eq(gb(49 * 1024 ** 2), "0.05GB", "gb(49MB) 进 GB 留两位小数")
+eq(gb(1024 ** 3), "1GB", "gb(1GB) 不带 .00")
+eq(gb(24.6 * 1024 ** 3), "24.6GB", "gb 两位数留一位小数")
+eq(gb(200 * 1024 ** 3), "200GB", "gb 三位数不留小数")
 
 // pair: one unit when both sides share it, two when they do not.
 eq(pair(300 * 1024 ** 2, 900 * 1024 ** 2), "300.00 / 900.00 MB", "同单位只写一次")
