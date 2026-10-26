@@ -21,7 +21,7 @@ export function useNodeRoute() {
 }
 
 /** Announced as a popstate, so every `useNodeRoute` hears it the way it hears back. */
-function navigate(href: string) {
+export function navigate(href: string) {
   history.pushState({}, "", href)
   dispatchEvent(new PopStateEvent("popstate"))
   scrollTo(0, 0)

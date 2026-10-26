@@ -62,17 +62,15 @@ export function compact(n: number): string {
   return `${Number(v.toFixed(i === 0 || v >= 100 ? 0 : v >= 10 ? 1 : 2))}${UNITS[i][0]}`
 }
 
-/** Distribution and major version only: "Debian GNU/Linux 13 (trixie)" is "Debian 13". */
+/** Distribution name only, no version: "Debian GNU/Linux 13 (trixie)" is "Debian". */
 export function distro(os: string): string {
-  const name = os.trim().split(/\s+/)[0] ?? ""
-  const version = os.match(/\d+(?:\.\d+)?/)?.[0]
-  return version ? `${name} ${version}` : name
+  return os.trim().split(/\s+/)[0] ?? ""
 }
 
 /** Whole days once past one, a running clock below it. */
 export function duration(seconds: number): string {
   const s = Math.max(0, Math.floor(seconds))
-  if (s >= 86400) return `${Math.floor(s / 86400)} 天`
+  if (s >= 86400) return `${Math.floor(s / 86400)}d`
   const pad = (n: number) => String(n).padStart(2, "0")
   return `${Math.floor(s / 3600)}:${pad(Math.floor((s % 3600) / 60))}:${pad(s % 60)}`
 }
@@ -105,7 +103,7 @@ export function uptime(seconds: number): string {
   const d = Math.floor(seconds / 86400)
   const h = Math.floor((seconds % 86400) / 3600)
   const m = Math.floor((seconds % 3600) / 60)
-  return d > 0 ? `${d} 天 ${h} 小时` : h > 0 ? `${h} 小时 ${m} 分` : `${m} 分`
+  return d > 0 ? `${d}d ${h}h` : h > 0 ? `${h}h ${m}m` : `${m}m`
 }
 
 /** Whole days until a date, negative once it has passed. */
@@ -130,13 +128,13 @@ export function money(amount: number, currency: string): string {
 }
 
 export const CYCLES: Record<string, string> = {
-  monthly: "月付",
-  quarterly: "季付",
-  semiannual: "半年付",
-  yearly: "年付",
-  biennial: "两年付",
-  triennial: "三年付",
-  once: "一次性",
+  monthly: "month",
+  quarterly: "quarter",
+  semiannual: "half year",
+  yearly: "year",
+  biennial: "2 years",
+  triennial: "3 years",
+  once: "one-time",
 }
 
 /** Hub 1.3.1 stores uncommon billing periods as a number of months. */
@@ -146,7 +144,7 @@ export function billingCycle(cycle: string): string {
   if (!match) return cycle
   const months = Number(match[1])
   if (!Number.isSafeInteger(months) || months < 1 || months > 1200) return cycle
-  return months % 12 === 0 ? `${months / 12} 年付` : `${months} 个月付`
+  return months % 12 === 0 ? `${months / 12} ${months === 12 ? "year" : "years"}` : `${months} ${months === 1 ? "month" : "months"}`
 }
 
 // Hoisted out of `clock`: recharts calls a tickFormatter for every sample when
@@ -158,13 +156,14 @@ export function billingCycle(cycle: string): string {
 // Both take epoch milliseconds, which is what the charts feed their time axis:
 // recharts passes `scale="time"` to a d3 time scale, and a scale given seconds
 // reads 1.79e9 as three weeks past the epoch. The hub answers in seconds.
-const HHMM = new Intl.DateTimeFormat("zh-CN", { hour: "2-digit", minute: "2-digit" })
+const HHMM = new Intl.DateTimeFormat("zh-CN", { hour: "2-digit", minute: "2-digit", hourCycle: "h23" })
 
 const MDHHMM = new Intl.DateTimeFormat("zh-CN", {
   month: "2-digit",
   day: "2-digit",
   hour: "2-digit",
   minute: "2-digit",
+  hourCycle: "h23",
 })
 
 function clock(ms: number): string {

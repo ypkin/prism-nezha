@@ -1,15 +1,15 @@
 import type { Node } from "./api.ts"
 import { monthUsage, percent } from "./format.ts"
 
-export type NodeStatusFilter = "all" | "online" | "offline" | "attention"
 export type NodeSortKey = "default" | "name" | "cpu" | "memory" | "traffic" | "network"
 export type NodeListPreferences = {
-  status: NodeStatusFilter
+  /** "all" or a server group name (the panel's Tag). */
+  group: string
   sort: NodeSortKey
   direction: "asc" | "desc"
 }
 
-export const DEFAULT_LIST_PREFERENCES: NodeListPreferences = { status: "all", sort: "default", direction: "asc" }
+export const DEFAULT_LIST_PREFERENCES: NodeListPreferences = { group: "all", sort: "default", direction: "asc" }
 export const LIST_PREFERENCES_KEY = "monitor-glass:node-list:v1"
 
 /** Persist choices, never a search query or server data. Storage may be blocked. */
@@ -20,7 +20,7 @@ export function readListPreferences(storage?: Pick<Storage, "getItem">): NodeLis
     if (!value || typeof value !== "object" || !("version" in value) || value.version !== 1) return { ...DEFAULT_LIST_PREFERENCES }
     const saved = value as Record<string, unknown>
     return {
-      status: typeof saved.status === "string" && ["all", "online", "offline", "attention"].includes(saved.status) ? saved.status as NodeStatusFilter : "all",
+      group: typeof saved.group === "string" && saved.group ? saved.group : "all",
       sort: typeof saved.sort === "string" && ["default", "name", "cpu", "memory", "traffic", "network"].includes(saved.sort) ? saved.sort as NodeSortKey : "default",
       direction: saved.direction === "desc" ? "desc" : "asc",
     }
@@ -67,7 +67,7 @@ function searchText(node: Node) {
 const nameOrder = new Intl.Collator("zh-CN", { numeric: true, sensitivity: "base" })
 
 function metricValue(node: Node, sort: NodeSortKey): number | null {
-  if (sort === "traffic") return monthUsage(node)
+  if (sort === "traffic") return node.total_rx + node.total_tx
   if (!node.online || !node.metrics) return null
   if (sort === "cpu") return node.metrics.cpu
   if (sort === "memory") return node.metrics.mem_total > 0 ? percent(node.metrics.mem_used, node.metrics.mem_total) : null
@@ -79,17 +79,17 @@ function metricValue(node: Node, sort: NodeSortKey): number | null {
 export function selectNodes(nodes: readonly Node[], query: string, preferences: NodeListPreferences): Node[] {
   const terms = query.trim().toLocaleLowerCase().split(/\s+/).filter(Boolean)
   const selected = nodes.filter((node) => {
-    if (preferences.status === "online" && !node.online) return false
-    if (preferences.status === "offline" && node.online) return false
-    if (preferences.status === "attention" && !needsAttention(node)) return false
+    if (preferences.group !== "all" && node.group !== preferences.group) return false
     if (!terms.length) return true
     const text = searchText(node)
     return terms.every((term) => text.includes(term))
   })
   const direction = preferences.direction === "desc" ? -1 : 1
   return selected.sort((a, b) => {
-    const fallback = a.sort - b.sort || a.id - b.id
-    if (preferences.sort === "default") return direction * fallback
+    // Panel order: DisplayIndex descending, exactly as the source site lists
+    // them; the direction toggle never flips the panel's own order.
+    const fallback = b.sort - a.sort || a.id - b.id
+    if (preferences.sort === "default") return fallback
     if (preferences.sort === "name") return direction * nameOrder.compare(a.name, b.name) || fallback
     const av = metricValue(a, preferences.sort)
     const bv = metricValue(b, preferences.sort)

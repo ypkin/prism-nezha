@@ -15,7 +15,7 @@ for (const patch of [{ load: null }, { load: [1, "bad", 3] }, { cpu: "bad" }, { 
   assert.equal(result[1], node)
 }
 assert.deepEqual(safeNodes([null, undefined, "bad", {}, node]), [node])
-for (const invalid of [null, undefined, {}, "bad"]) assert.throws(() => safeNodes(invalid), /格式异常/)
+for (const invalid of [null, undefined, {}, "bad"]) assert.throws(() => safeNodes(invalid), /Invalid node data format/)
 
 const clone = (value: Node): Node => structuredClone(value)
 const previous = [node, { ...clone(node), id: 2 }]

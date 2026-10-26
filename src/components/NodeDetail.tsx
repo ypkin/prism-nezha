@@ -1,4 +1,5 @@
-import { memo, useEffect, useMemo, useState } from "react"
+import { memo, useEffect, useMemo, useRef, useState } from "react"
+import { RefreshCw } from "lucide-react"
 import {
   Area, AreaChart, Brush, CartesianGrid, ComposedChart, Line, LineChart, ResponsiveContainer,
   Tooltip, XAxis, YAxis,
@@ -46,15 +47,24 @@ type Probes = Record<string, string>
 type Loss = Record<string, number>
 
 const RANGES = [
-  { hours: 1, label: "1 小时" },
-  { hours: 6, label: "6 小时" },
-  { hours: 24, label: "24 小时" },
-  { hours: 168, label: "7 天" },
+  { hours: 1, label: "1h" },
+  { hours: 12, label: "12h" },
+  { hours: 24, label: "24h" },
+  { hours: 168, label: "7d" },
 ]
+
+const CHART_TABS = [
+  { key: "cpu", label: "CPU" },
+  { key: "memory", label: "Memory" },
+  { key: "network", label: "Network" },
+  { key: "disk", label: "Disk" },
+  { key: "latency", label: "Latency" },
+] as const
+type ChartTab = (typeof CHART_TABS)[number]["key"]
 
 // The compact drawer defaults to one hour; the monitoring page supplies its
 // shared range so resource and carrier charts show the same window.
-const DEFAULT_LATENCY_HOURS = 1
+const DEFAULT_LATENCY_HOURS = 24
 
 const AXIS = { stroke: "currentColor", fontSize: 12, tickLine: false, axisLine: false }
 
@@ -75,19 +85,23 @@ const SOFT_SERIES = {
 // 28px, placing a CPU spike and the network spike that caused it at different x.
 const Y_WIDTH = 68
 
-// The three mainland carrier probes use the visual language requested for the
-// dashboard: neutral gray, reference green #2BEA5E and reference red #FA471E.
-// Unknown/custom probes still fall back to the theme chart palette.
+// Each carrier probe gets its own colour, split by address family, so the
+// latency lines can be told apart at a glance: v4 and v6 of the same carrier
+// no longer share one colour. Unknown/custom probes still fall back to the
+// theme chart palette.
 const PALETTE = [1, 2, 3, 4, 5].map((i) => `var(--color-chart-${i})`)
-const PROBE_GRAY = "#7A7A7A"
-const PROBE_GREEN = "#2BEA5E"
-const PROBE_RED = "#FA471E"
+const PROBE_COLORS: Record<"unicom" | "mobile" | "telecom", { v4: string; v6: string }> = {
+  unicom: { v4: "#38BDF8", v6: "#C084FC" },
+  mobile: { v4: "#FA471E", v6: "#2BEA5E" },
+  telecom: { v4: "#FACC15", v6: "#F472B6" },
+}
 
 function probeColor(name: string, fallbackIndex: number) {
   const key = name.toLowerCase()
-  if (key.includes("联通") || key.includes("unicom")) return PROBE_GRAY
-  if (key.includes("电信") || key.includes("telecom")) return PROBE_GREEN
-  if (key.includes("移动") || key.includes("mobile")) return PROBE_RED
+  const family = key.includes("v6") ? "v6" : "v4"
+  if (key.includes("联通") || key.includes("unicom")) return PROBE_COLORS.unicom[family]
+  if (key.includes("移动") || key.includes("mobile")) return PROBE_COLORS.mobile[family]
+  if (key.includes("电信") || key.includes("telecom")) return PROBE_COLORS.telecom[family]
   return PALETTE[Math.max(0, fallbackIndex) % PALETTE.length]
 }
 
@@ -101,11 +115,11 @@ const TIP = {
   borderRadius: "var(--radius)",
 }
 
-function Panel({ title, children }: { title: React.ReactNode; children: React.ReactNode }) {
+function Panel({ title, children, tall = false }: { title: React.ReactNode; children: React.ReactNode; tall?: boolean }) {
   return (
     <section className="monitor-chart-card rounded-2xl border border-border/55 p-3 md:p-4">
       <h4 className="mb-2 text-xs font-medium text-muted-foreground">{title}</h4>
-      <div className="h-44 w-full text-muted-foreground">{children}</div>
+      <div className={tall ? "h-72 w-full text-muted-foreground md:h-80" : "h-44 w-full text-muted-foreground"}>{children}</div>
     </section>
   )
 }
@@ -116,7 +130,7 @@ function Tab({ active, onClick, children }: { active: boolean; onClick: () => vo
       type="button"
       aria-pressed={active}
       onClick={onClick}
-      className="monitor-range-tab rounded-full border px-3.5 py-1.5 text-xs transition-colors"
+      className="monitor-range-tab shrink-0 rounded-full border px-3.5 py-1.5 text-xs whitespace-nowrap transition-colors"
     >
       {children}
     </button>
@@ -155,7 +169,7 @@ function useHistory(id: number, hours: number, series: "metrics" | "ping") {
         // `|| "..."` as in App.tsx: HTTP/2 dropped statusText, so a bodiless
         // failure from a proxy arrives as the empty string and renders as no
         // error.
-        if (!controller.signal.aborted) { setFailed(e.message || "网络错误"); setData({ metrics: [], ping: [], probes: {} }) }
+        if (!controller.signal.aborted) { setFailed(e.message || "Network error"); setData({ metrics: [], ping: [], probes: {} }) }
       })
     return () => controller.abort()
   }, [id, hours, series, attempt])
@@ -166,8 +180,8 @@ function useHistory(id: number, hours: number, series: "metrics" | "ping") {
 function Failed({ message, retry }: { message: string; retry: () => void }) {
   return (
     <p className="py-8 text-center text-sm text-destructive" role="alert">
-      读取历史数据失败：{message}
-      <button onClick={retry} className="ml-2 text-primary hover:underline">重试</button>
+      Failed to load history: {message}
+      <button onClick={retry} className="ml-2 text-primary hover:underline">Retry</button>
     </p>
   )
 }
@@ -275,13 +289,17 @@ function timeAxis(rows: { ts: number }[], hours: number, from = 0, to = rows.len
  * expanded row both draw it: the legend above, sized to its chips, and the plot
  * with its brush below at the height `className` gives it.
  */
-function LatencyView({ id, className, hours = DEFAULT_LATENCY_HOURS }: { id: number; className?: string; hours?: number }) {
+function LatencyView({ id, className, hours = DEFAULT_LATENCY_HOURS, toolbar }: { id: number; className?: string; hours?: number; toolbar?: React.ReactNode }) {
   const { data, failed, retry } = useHistory(id, hours, "ping")
   // Probes switched off. Hiding a slow one is what makes the fast ones readable,
   // as the axis rescales to what remains.
   const [hiddenProbes, setHiddenProbes] = useState<number[]>([])
   // The trend is easier to read by default; the button restores raw answers.
   const [smooth, setSmooth] = useState(true)
+  // Spikes pulled back to their neighbourhood. Off by default: the raw round
+  // trips answer whether the node stalled; on, a single 2 s bucket stops
+  // setting the axis for the day around it.
+  const [despiked, setDespiked] = useState(false)
   // Where the brush has been dragged, so the axis reticks for the visible span.
   // Tagged with the window it was dragged on, so a new window starts unzoomed
   // without an effect to clear it.
@@ -303,7 +321,7 @@ function LatencyView({ id, className, hours = DEFAULT_LATENCY_HOURS }: { id: num
           // which is already a percentage of its own bucket, so averaging them
           // would report one lost round in thirteen as 50%.
           const loss = data?.loss?.[id] ?? 0
-          return { id, name: data?.probes?.[id] ?? `探测 ${id}`, points, loss }
+          return { id, name: data?.probes?.[id] ?? `Probe ${id}`, points, loss }
         })
         .filter((s) => s.points.length > 0),
     [data],
@@ -318,6 +336,9 @@ function LatencyView({ id, className, hours = DEFAULT_LATENCY_HOURS }: { id: num
     const index = pingSeries.findIndex((p) => p.id === id)
     return probeColor(index >= 0 ? pingSeries[index].name : "", index)
   }
+  // Which series the chart draws, from the two filters: raw, despiked, smoothed,
+  // or smoothed after despiking.
+  const lineKey = (id: number) => `${despiked ? (smooth ? "s" : "d") : (smooth ? "r" : "t")}${id}`
 
   // The hub stamps every sample with its bucket rather than the second the probe
   // finished, so probes reporting at the bucket's rate share rows instead of each
@@ -337,7 +358,10 @@ function LatencyView({ id, className, hours = DEFAULT_LATENCY_HOURS }: { id: num
     >()
     for (const s of pingSeries) {
       const windowSize = despikeWindow(s.points)
-      const line = smoothPing(s.points, despike(s.points.map((p) => p.latency), windowSize), hours <= 6 ? 2 : 1)
+      const raw = s.points.map((p) => p.latency)
+      const desp = despike(raw, windowSize)
+      const lineS = smoothPing(s.points, desp, hours <= 6 ? 2 : 1)
+      const lineR = smoothPing(s.points, raw, hours <= 6 ? 2 : 1)
       // The band spans the same outliers as the line, and with one probe on
       // screen it is what the axis is fitted to, so it is clipped alongside it
       // rather than left to pull the axis back open.
@@ -346,7 +370,9 @@ function LatencyView({ id, className, hours = DEFAULT_LATENCY_HOURS }: { id: num
       s.points.forEach((p, i) => {
         const row = rows.get(p.ts) ?? { ts: p.ts * 1_000 }
         row[`t${s.id}`] = p.latency
-        row[`s${s.id}`] = line[i]
+        row[`d${s.id}`] = desp[i]
+        row[`s${s.id}`] = lineS[i]
+        row[`r${s.id}`] = lineR[i]
         row[`l${s.id}`] = p.loss ?? 0
         // A bucket with a single answer carries no band and spans only that answer. Left null, `connectNulls`
         // would bridge the hours between the few buckets that have one: 9 of
@@ -361,7 +387,7 @@ function LatencyView({ id, className, hours = DEFAULT_LATENCY_HOURS }: { id: num
         row[`c${s.id}`] =
           low === null || high === null
             ? null
-            : [Math.min(low, high, line[i] ?? low), Math.max(low, high, line[i] ?? high)]
+            : [Math.min(low, high, lineS[i] ?? low), Math.max(low, high, lineS[i] ?? high)]
         rows.set(p.ts, row)
       })
     }
@@ -371,14 +397,16 @@ function LatencyView({ id, className, hours = DEFAULT_LATENCY_HOURS }: { id: num
   if (!data) return <Skeleton className={cn("w-full", className)} />
   if (failed) return <Failed message={failed} retry={retry} />
   if (pingSeries.length === 0) {
-    return <p className="py-8 text-center text-sm text-muted-foreground">这段时间没有延迟数据</p>
+    return <p className="py-8 text-center text-sm text-muted-foreground">No latency data for this period</p>
   }
   const last = pingRows.length - 1
   const [from, to] = zoom?.of === data ? zoom.range.map((i) => Math.min(i, last)) : [0, last]
 
   return (
     <div className="space-y-2">
-      <div className="flex flex-wrap items-center justify-center gap-1.5">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 max-md:gap-x-2">
+        {toolbar}
+        <div className="flex flex-wrap items-center gap-1.5 max-md:order-3 max-md:w-full max-md:flex-nowrap max-md:gap-1 md:ml-auto md:gap-2">
         {pingSeries.map((s) => {
           const shown = !hiddenProbes.includes(s.id)
           return (
@@ -389,36 +417,58 @@ function LatencyView({ id, className, hours = DEFAULT_LATENCY_HOURS }: { id: num
               onClick={() =>
                 setHiddenProbes((h) => (shown ? [...h, s.id] : h.filter((id) => id !== s.id)))
               }
-              className="monitor-chip inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs"
+              className={cn(
+                "inline-flex h-5 shrink-0 items-center gap-1.5 rounded-md border px-2 text-xs font-medium transition-all hover:bg-muted max-md:min-w-0 max-md:flex-1 max-md:justify-center max-md:gap-1 max-md:px-1 max-md:whitespace-nowrap max-md:text-[11px]",
+                !shown ? "border-dashed border-border/60 opacity-40" : "border-border/80 bg-card",
+              )}
             >
               {/* The swatch carries the same colour as the line. */}
-              <svg width="14" height="6" className="shrink-0" aria-hidden>
-                <line x1="0" y1="3" x2="14" y2="3" stroke={color(s.id)} strokeWidth="2" />
-              </svg>
-              {s.name}
+              <span className="inline-flex items-center gap-1.5 max-md:gap-0.5">
+                <svg width="14" height="6" className="shrink-0 max-md:w-2" aria-hidden>
+                  <line x1="0" y1="3" x2="14" y2="3" stroke={color(s.id)} strokeWidth="2" />
+                </svg>
+                {s.name}
+              </span>
               {/* Always shown, since the line is only what answered and a probe
                   dropping half its packets draws like a healthy one. Anything
-                  under a tenth is written as such rather than rounded to 0.0. */}
-              <span className="tabular-nums opacity-60">
+                  under a tenth is written as such rather than rounded to 0.0.
+                  Mobile shows the compact integer form so all four chips fit
+                  on one row without wrapping. */}
+              <span className="tnum font-normal text-muted-foreground max-md:hidden">
                 {s.loss > 0 && s.loss < 0.1 ? "<0.1" : s.loss.toFixed(1)}%
+              </span>
+              <span className="tnum font-normal text-muted-foreground hidden max-md:inline">
+                {s.loss > 0 && s.loss < 0.1 ? "<0.1" : s.loss.toFixed(0)}%
               </span>
             </button>
           )
         })}
-        <button
-          type="button"
-          onClick={() => setSmooth((on) => !on)}
-          aria-pressed={smooth}
-          title="平滑显示趋势；关闭后查看原始曲线。悬停仍可查看实测值"
-          className="monitor-chip rounded-full border px-2.5 py-1 text-xs"
-        >
-          平滑
-        </button>
+        </div>
+        <div className="flex gap-1 max-md:ml-auto max-md:shrink-0">
+          <button
+            type="button"
+            onClick={() => setDespiked((on) => !on)}
+            aria-pressed={despiked}
+            title="把孤立的异常值换成邻近若干桶的中位数，持续的变化保持原样"
+            className={cn("inline-flex h-5 items-center justify-center rounded-md border px-2 text-xs font-medium whitespace-nowrap max-md:px-1.5", despiked ? "border-orange-500 bg-orange-500 text-white" : "border-input bg-transparent")}
+          >
+            削峰
+          </button>
+          <button
+            type="button"
+            onClick={() => setSmooth((on) => !on)}
+            aria-pressed={smooth}
+            title="平滑趋势线；关掉看原始值，悬停仍显示实测值"
+            className={cn("inline-flex h-5 items-center justify-center rounded-md border px-2 text-xs font-medium whitespace-nowrap max-md:px-1.5", smooth ? "border-orange-500 bg-orange-500 text-white" : "border-input bg-transparent")}
+          >
+            平滑
+          </button>
+        </div>
       </div>
 
       <div className={cn("w-full text-muted-foreground", className)}>
         {shownProbes.length === 0 ? (
-          <p className="py-8 text-center text-sm">没有选中任何探测</p>
+          <p className="py-8 text-center text-sm">No probes selected</p>
         ) : (
           <ResponsiveContainer>
             <ComposedChart data={pingRows}>
@@ -449,7 +499,7 @@ function LatencyView({ id, className, hours = DEFAULT_LATENCY_HOURS }: { id: num
                   const loss = Number(item?.payload?.[`l${probe}`] ?? 0)
                   const measured = item?.payload?.[`t${probe}`]
                   const reading = smooth && typeof measured === "number" && Math.round(measured) !== Math.round(Number(v))
-                    ? `${Math.round(measured)} ms（趋势 ${Math.round(Number(v))} ms）`
+                    ? `${Math.round(measured)} ms (trend ${Math.round(Number(v))} ms)`
                     : `${Math.round(Number(v))} ms`
                   return [`${reading}${loss > 0 ? ` · 丢 ${loss}%` : ""}`, name]
                 }}
@@ -467,7 +517,7 @@ function LatencyView({ id, className, hours = DEFAULT_LATENCY_HOURS }: { id: num
                 shownProbes.map((s) => (
                   <Area
                     key={`band${s.id}`}
-                    dataKey={`${smooth ? "c" : "b"}${s.id}`}
+                    dataKey={`${despiked ? "c" : "b"}${s.id}`}
                     type="monotoneX"
                     stroke="none"
                     fill={color(s.id)}
@@ -481,7 +531,7 @@ function LatencyView({ id, className, hours = DEFAULT_LATENCY_HOURS }: { id: num
               {shownProbes.length > 1 && shownProbes.map((s) => (
                 <Area
                   key={`glow${s.id}`}
-                  dataKey={`${smooth ? "s" : "t"}${s.id}`}
+                  dataKey={lineKey(s.id)}
                   type="monotoneX"
                   stroke="none"
                   fill={`url(#ping-glow-${id}-${s.id})`}
@@ -495,7 +545,7 @@ function LatencyView({ id, className, hours = DEFAULT_LATENCY_HOURS }: { id: num
               {shownProbes.map((s) => (
                 <Line
                   key={s.id}
-                  dataKey={`${smooth ? "s" : "t"}${s.id}`}
+                  dataKey={lineKey(s.id)}
                   name={s.name}
                   stroke={color(s.id)}
                   {...SERIES}
@@ -531,8 +581,49 @@ function LatencyView({ id, className, hours = DEFAULT_LATENCY_HOURS }: { id: num
 export const Latency = memo(LatencyView)
 
 function NodeDetailView({ node }: { node: Node }) {
-  const [hours, setHours] = useState(6)
+  const [hours, setHours] = useState(24)
+  const [tab, setTab] = useState<ChartTab>("cpu")
   const { data, failed, retry } = useHistory(node.id, hours, "metrics")
+  const [latencyEpoch, setLatencyEpoch] = useState(0)
+  const [pull, setPull] = useState(0)
+  const [refreshing, setRefreshing] = useState(false)
+  const pullStart = useRef<number | null>(null)
+
+  // Pull-to-refresh is this page's own: while it is mounted, keep the
+  // browser's native overscroll refresh from reloading the whole app.
+  useEffect(() => {
+    const root = document.documentElement
+    const previous = root.style.overscrollBehaviorY
+    root.style.overscrollBehaviorY = "none"
+    return () => {
+      root.style.overscrollBehaviorY = previous
+    }
+  }, [])
+
+  const onPullStart = (event: React.TouchEvent) => {
+    pullStart.current = window.scrollY <= 0 ? event.touches[0]?.clientY ?? null : null
+  }
+  const onPullMove = (event: React.TouchEvent) => {
+    if (pullStart.current === null || refreshing) return
+    const dy = (event.touches[0]?.clientY ?? pullStart.current) - pullStart.current
+    setPull(dy > 0 ? Math.min(76, dy * 0.5) : 0)
+  }
+  const onPullEnd = () => {
+    const shouldRefresh = pull >= 56 && !refreshing
+    pullStart.current = null
+    if (!shouldRefresh) {
+      setPull(0)
+      return
+    }
+    setRefreshing(true)
+    setPull(48)
+    retry()
+    setLatencyEpoch((n) => n + 1)
+    setTimeout(() => {
+      setRefreshing(false)
+      setPull(0)
+    }, 700)
+  }
 
   // The hub answers in seconds; the time axis requires milliseconds.
   const metricRows = useMemo((): MetricRow[] => {
@@ -570,12 +661,36 @@ function NodeDetailView({ node }: { node: Node }) {
   }, [metricRows])
 
   return (
-    <div className="monitor-detail space-y-4">
+    <div className="monitor-detail space-y-4" onTouchStart={onPullStart} onTouchMove={onPullMove} onTouchEnd={onPullEnd}>
+      <div
+        aria-hidden={pull === 0 && !refreshing}
+        className="flex items-center justify-center gap-2 overflow-hidden text-xs text-muted-foreground transition-[height] duration-150"
+        style={{ height: refreshing ? 48 : pull }}
+      >
+        <RefreshCw className={refreshing ? "size-3.5 animate-spin" : "size-3.5"} />
+        <span>{refreshing ? "Refreshing..." : pull >= 56 ? "Release to refresh" : "Pull to refresh"}</span>
+      </div>
       <section className="monitor-overview overflow-hidden rounded-[1.5rem] border">
         <div className="monitor-node-head flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 border-0 px-4 py-3.5 md:px-5 md:py-4">
           <Dot node={node} className="monitor-status-dot" />
           <h2 className="truncate text-lg font-semibold tracking-[-0.02em]">{node.name}</h2>
-          <div className="monitor-head-location ml-auto flex shrink-0 items-center gap-3">
+          {/* Mobile: the range pills ride on the name row, right after the
+              node name (user-directed), so the tab bar below carries only
+              the chart tabs. Desktop keeps ranges in the tab bar. */}
+          <div className="ml-auto flex shrink-0 flex-nowrap items-center gap-1 md:hidden">
+            {RANGES.map((r) => (
+              <button
+                key={r.hours}
+                type="button"
+                aria-pressed={hours === r.hours}
+                onClick={() => setHours(r.hours)}
+                className="monitor-range-tab shrink-0 rounded-full border px-2 py-0.5 text-[11px] leading-5 transition-colors"
+              >
+                {r.label}
+              </button>
+            ))}
+          </div>
+          <div className="monitor-head-location flex shrink-0 items-center gap-3">
             <Flag code={node.country} className="text-sm" />
             <span className="monitor-head-os inline-flex items-center gap-1.5 text-xs text-muted-foreground">
               <OsIcon os={node.os} />{distro(node.os) || "—"}
@@ -587,24 +702,40 @@ function NodeDetailView({ node }: { node: Node }) {
           <p className="monitor-note border-x-0 border-b-0 border-t px-4 py-2.5 text-sm whitespace-pre-wrap md:px-5">{node.remark}</p>
         )}
 
-        <div className="monitor-range flex flex-wrap gap-1.5 border-x-0 border-b-0 border-t p-2 md:px-3">
-          {RANGES.map((r) => (
-            <Tab key={r.hours} active={hours === r.hours} onClick={() => setHours(r.hours)}>
-              {r.label}
+        <div className="monitor-range flex flex-wrap items-center gap-1.5 border-x-0 border-b-0 border-t p-2 md:px-3">
+          {CHART_TABS.map((t) => (
+            <Tab key={t.key} active={tab === t.key} onClick={() => setTab(t.key)}>
+              {t.label}
             </Tab>
           ))}
+          <div className="ml-auto flex flex-nowrap gap-1.5 max-md:hidden">
+            {RANGES.map((r) => (
+              <Tab key={r.hours} active={hours === r.hours} onClick={() => setHours(r.hours)}>
+                {r.label}
+              </Tab>
+            ))}
+          </div>
         </div>
       </section>
 
-      {!data ? (
-        <Skeleton className="h-40 w-full" />
+      {/* Layout (2026-10-24, superseding the latency-on-top stacking of the
+          same day): one tabbed chart card like the design theme's detail
+          page — tabs in the bar above, a single large chart below. */}
+      {tab === "latency" ? (
+        <section className="monitor-chart-card monitor-latency-card rounded-2xl border border-border/55 p-3 md:p-4" aria-label="Carrier latency chart">
+          <h4 className="mb-2 text-xs font-medium text-muted-foreground">Carrier Latency</h4>
+          <Latency key={`${node.id}-${latencyEpoch}`} id={node.id} hours={hours} className="h-72 md:h-80" />
+        </section>
+      ) : !data ? (
+        <Skeleton className="h-80 w-full" />
       ) : failed ? (
         <Failed message={failed} retry={retry} />
       ) : data.metrics.length === 0 ? (
-        <p className="py-8 text-center text-sm text-muted-foreground">这段时间没有历史数据</p>
+        <p className="py-8 text-center text-sm text-muted-foreground">No history data for this period</p>
       ) : (
-        <div className="grid gap-3 lg:grid-cols-2">
-          <Panel title="CPU">
+        <>
+          {tab === "cpu" && (
+          <Panel tall title="CPU">
             <ResponsiveContainer>
               <AreaChart data={metricRows}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-border" vertical={false} />
@@ -619,13 +750,15 @@ function NodeDetailView({ node }: { node: Node }) {
               </AreaChart>
             </ResponsiveContainer>
           </Panel>
+          )}
 
           {/* The axis top is the machine's memory, so the line's height is the
               fraction in use whatever range is picked. Tracking the window's
               own maximum, which is what an area chart does by default, puts
               127 MB of a 457 MB box at the top of the panel. The size is in the
               title because the axis top is claiming it. */}
-          <Panel title={`内存 · ${bytes(node.mem_total)}`}>
+          {tab === "memory" && (
+          <Panel tall title={`Memory · ${bytes(node.mem_total)}`}>
             <ResponsiveContainer>
               <AreaChart data={metricRows}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-border" vertical={false} />
@@ -636,20 +769,22 @@ function NodeDetailView({ node }: { node: Node }) {
                   formatter={(_v, _name, item) => bytes(Number(item.payload.mem_used))}
                   contentStyle={TIP}
                 />
-                <Area dataKey="mem_trend" name="内存" stroke="var(--color-chart-4)" fill="var(--color-chart-4)" fillOpacity={0.15} {...SOFT_SERIES} />
+                <Area dataKey="mem_trend" name="Memory" stroke="var(--color-chart-4)" fill="var(--color-chart-4)" fillOpacity={0.15} {...SOFT_SERIES} />
               </AreaChart>
             </ResponsiveContainer>
           </Panel>
+          )}
 
           {/* A rate has no total to be a fraction of, so this one climbs the
               ladder like CPU rather than pinning to a capacity. */}
-          <Panel
+          {tab === "network" && (
+          <Panel tall
             title={
               <>
-                网络速率
-                <span className="ml-3" style={{ color: "var(--network-rx)" }}>● 下行</span>
-                <span className="ml-2" style={{ color: "var(--network-tx)" }}>● 上行</span>
-                {hasPeaks && <span className="ml-2">虚线峰值</span>}
+                Network Rate
+                <span className="ml-3" style={{ color: "var(--network-rx)" }}>● Download</span>
+                <span className="ml-2" style={{ color: "var(--network-tx)" }}>● Upload</span>
+                {hasPeaks && <span className="ml-2">Dashed peaks</span>}
               </>
             }
           >
@@ -668,18 +803,20 @@ function NodeDetailView({ node }: { node: Node }) {
                   }}
                   contentStyle={TIP}
                 />
-                {hasPeaks && <Line dataKey="rx_peak" name="下行峰值" stroke="var(--network-rx)" strokeOpacity={0.48} strokeDasharray="4 3" {...SOFT_SERIES} strokeWidth={1} />}
-                {hasPeaks && <Line dataKey="tx_peak" name="上行峰值" stroke="var(--network-tx)" strokeOpacity={0.48} strokeDasharray="4 3" {...SOFT_SERIES} strokeWidth={1} />}
-                <Line dataKey="rx_trend" name="下行" stroke="var(--network-rx)" {...SOFT_SERIES} />
-                <Line dataKey="tx_trend" name="上行" stroke="var(--network-tx)" {...SOFT_SERIES} />
+                {hasPeaks && <Line dataKey="rx_peak" name="Download peak" stroke="var(--network-rx)" strokeOpacity={0.48} strokeDasharray="4 3" {...SOFT_SERIES} strokeWidth={1} />}
+                {hasPeaks && <Line dataKey="tx_peak" name="Upload peak" stroke="var(--network-tx)" strokeOpacity={0.48} strokeDasharray="4 3" {...SOFT_SERIES} strokeWidth={1} />}
+                <Line dataKey="rx_trend" name="Download" stroke="var(--network-rx)" {...SOFT_SERIES} />
+                <Line dataKey="tx_trend" name="Upload" stroke="var(--network-tx)" {...SOFT_SERIES} />
               </LineChart>
             </ResponsiveContainer>
           </Panel>
+          )}
 
           {/* The disk it is filling, for the same reason as memory: a node
               using 2.7% of its disk draws along the top of the panel when the
               axis tracks the window's own maximum. */}
-          <Panel title={`硬盘 · ${bytes(node.disk_total)}`}>
+          {tab === "disk" && (
+          <Panel tall title={`Disk · ${bytes(node.disk_total)}`}>
             <ResponsiveContainer>
               <AreaChart data={metricRows}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-border" vertical={false} />
@@ -690,16 +827,13 @@ function NodeDetailView({ node }: { node: Node }) {
                   formatter={(_v, _name, item) => bytes(Number(item.payload.disk_used))}
                   contentStyle={TIP}
                 />
-                <Area dataKey="disk_trend" name="硬盘" stroke="var(--color-chart-5)" fill="var(--color-chart-5)" fillOpacity={0.15} {...SOFT_SERIES} />
+                <Area dataKey="disk_trend" name="Disk" stroke="var(--color-chart-5)" fill="var(--color-chart-5)" fillOpacity={0.15} {...SOFT_SERIES} />
               </AreaChart>
             </ResponsiveContainer>
           </Panel>
-        </div>
+          )}
+        </>
       )}
-      <section className="monitor-chart-card monitor-latency-card rounded-2xl border border-border/55 p-3 md:p-4" aria-label="三网延迟图表">
-        <h4 className="mb-2 text-xs font-medium text-muted-foreground">三网延迟</h4>
-        <Latency key={node.id} id={node.id} hours={hours} className="h-48 md:h-52" />
-      </section>
     </div>
   )
 }
