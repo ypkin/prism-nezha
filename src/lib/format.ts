@@ -55,6 +55,20 @@ export function rate(n: number): string {
 }
 
 /**
+ * Parse a user-typed traffic amount ("26GB", "174.5 MB", "1024" = GB) into
+ * bytes. A bare number means GB: quotas are quoted in GB, so that is the
+ * reading a calibration input expects.
+ */
+export function parseTraffic(text: string): number | null {
+  const m = /^\s*([\d.]+)\s*([KMGT])?B?\s*$/i.exec(text)
+  if (!m) return null
+  const v = Number.parseFloat(m[1])
+  if (!Number.isFinite(v) || v < 0) return null
+  const pow = m[2] ? "KMGT".indexOf(m[2].toUpperCase()) + 1 : 3
+  return Math.round(v * 1024 ** pow)
+}
+
+/**
  * The table's form: one letter of unit and no trailing zeros, so a column holds
  * "4.91K | 626B" in the width `bytes` spends on one side.
  */
@@ -95,6 +109,38 @@ export function monthUsage(node: { month_rx: number; month_tx: number; month_use
     default:
       return rx + tx
   }
+}
+
+/** Today's usage, metered the same way as the month's (same plan mode). */
+export function dayUsage(node: { day_rx: number; day_tx: number; traffic_mode: string }): number {
+  const { day_rx: rx, day_tx: tx } = node
+  switch (node.traffic_mode) {
+    case "up":
+      return tx
+    case "down":
+      return rx
+    case "max":
+      return Math.max(rx, tx)
+    default:
+      return rx + tx
+  }
+}
+
+/**
+ * The usage period a date falls in, given the plan's monthly reset day.
+ * resetDay <= 1 means the calendar month (key "YYYY-MM", the historical
+ * shape). Otherwise the period starts on that day of the month, clamped to
+ * the month's length, and the key is the start date ("YYYY-MM-DD"): e.g.
+ * resetDay 15 on Oct 26 -> "2026-10-15", on Oct 10 -> "2026-09-15".
+ */
+export function periodKeyFor(now: Date, resetDay: number): string {
+  const pad = (n: number) => String(n).padStart(2, "0")
+  if (!resetDay || resetDay <= 1) return `${now.getFullYear()}-${pad(now.getMonth() + 1)}`
+  const y = now.getFullYear(), m = now.getMonth(), d = now.getDate()
+  const daysIn = (yy: number, mm: number) => new Date(yy, mm + 1, 0).getDate()
+  if (d >= resetDay) return `${y}-${pad(m + 1)}-${pad(Math.min(resetDay, daysIn(y, m)))}`
+  const pm = m === 0 ? 11 : m - 1, py = m === 0 ? y - 1 : y
+  return `${py}-${pad(pm + 1)}-${pad(Math.min(resetDay, daysIn(py, pm)))}`
 }
 
 export function percent(used: number, total: number): number {

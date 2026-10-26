@@ -7,10 +7,10 @@ import {
 
 import { Skeleton } from "@/components/ui/skeleton"
 import { V190StatBar } from "@/components/StatBar"
-import type { Node } from "@/lib/api"
+import { calibrateUsage, usagePasswordSet, type Node } from "@/lib/api"
 import {
-  billingCycle, bytes, compact, daysUntil, distro, money, osName, cpuName, pair,
-  percent, rate, uptime,
+  billingCycle, bytes, compact, daysUntil, dayUsage, distro, money, monthUsage, osName, cpuName, pair,
+  parseTraffic, percent, rate, uptime,
 } from "@/lib/format"
 import { readListPreferences, saveListPreferences, selectNodes, type NodeSortKey } from "@/lib/node-list"
 import { cn } from "@/lib/utils"
@@ -115,6 +115,135 @@ function DetailGroup({ title, children }: { title: string; children: ReactNode }
       <h4 className="mb-1.5 text-[10px] font-semibold tracking-wide text-muted-foreground">{title}</h4>
       <div className="space-y-1">{children}</div>
     </section>
+  )
+}
+
+// 套餐流量行：今日用量 / 本月用量 / 总量（剩余多少）。本月用量是实时月度
+// 用量（按计费模式），用户对齐后从对齐值往上累计；设定改的就是本月用量。
+function PlanTraffic({ node }: { node: Node }) {
+  const [editing, setEditing] = useState(false)
+  const [text, setText] = useState("")
+  const [dateText, setDateText] = useState("")
+  const [password, setPassword] = useState("")
+  const [newPassword, setNewPassword] = useState("")
+  const [passwordSet, setPasswordSet] = useState<boolean | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [override, setOverride] = useState<number | null>(null)
+  const month = override ?? monthUsage(node)
+  const today = dayUsage(node)
+  // 下一次实时推送会按对齐后的基线重算；那时起显示计算值，不再用乐观值。
+  useEffect(() => { setOverride(null) }, [node.month_used])
+  const total = node.traffic_limit
+  const remaining = total > 0 ? total - month : null
+
+  const open = () => {
+    setText(""); setPassword(""); setNewPassword(""); setError(null)
+    setDateText(node.traffic_reset_day > 0 ? String(node.traffic_reset_day) : "")
+    setPasswordSet(usagePasswordSet())
+    setEditing(true)
+  }
+
+  const save = async () => {
+    const v = parseTraffic(text)
+    if (v === null) { setError("格式不对，如 26GB"); return }
+    let resetDay = node.traffic_reset_day || 0
+    const dt = dateText.trim()
+    if (dt !== "") {
+      if (!/^\d{1,2}$/.test(dt)) { setError("日期填 1-31 的号数"); return }
+      const n = Number.parseInt(dt, 10)
+      if (n < 1 || n > 31) { setError("日期填 1-31 的号数"); return }
+      resetDay = n
+    }
+    setError(null)
+    setSaving(true)
+    const result = await calibrateUsage(node.id, v, node.total_rx, node.total_tx, password, newPassword, resetDay)
+    setSaving(false)
+    if (result === "wrong-password") { setError("密码不对"); setPasswordSet(true); return }
+    if (result !== "ok") { setError("保存失败，请重试"); return }
+    if (newPassword) setPasswordSet(true)
+    setOverride(v)
+    setEditing(false)
+  }
+
+  return (
+    <span>
+      <span className="whitespace-nowrap">今日 {bytes(today)}</span>
+      {" / "}
+      <span className="whitespace-nowrap">本月 {bytes(month)}</span>
+      {total > 0 && (
+        <>
+          {" / "}
+          <span className="whitespace-nowrap">{bytes(total)}</span>
+          {remaining !== null && (
+            <span className="whitespace-nowrap">（{remaining >= 0 ? `剩余 ${bytes(remaining)}` : `已超 ${bytes(-remaining)}`}）</span>
+          )}
+        </>
+      )}
+      {total < 0 && <span className="whitespace-nowrap">（不限量）</span>}
+      {" "}
+      {editing ? (
+        <span className="inline-flex flex-col gap-1">
+          <span className="inline-flex flex-nowrap items-center gap-1">
+            <input
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") void save(); if (e.key === "Escape") setEditing(false) }}
+              placeholder="如 26GB"
+              disabled={saving}
+              className="h-6 w-24 rounded-md border border-border bg-background px-1.5 text-xs shadow-none"
+            />
+            <button type="button" onClick={() => void save()} disabled={saving} className="server-monitor-link rounded-full px-2 py-0.5 text-xs">确定</button>
+            <button type="button" onClick={() => setEditing(false)} disabled={saving} className="server-monitor-link rounded-full px-2 py-0.5 text-xs">取消</button>
+          </span>
+          <span className="inline-flex flex-nowrap items-center gap-1">
+            {passwordSet === true && (
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") void save(); if (e.key === "Escape") setEditing(false) }}
+                placeholder="密码（必填）"
+                autoComplete="current-password"
+                disabled={saving}
+                className="h-6 w-24 rounded-md border border-border bg-background px-1.5 text-xs shadow-none"
+              />
+            )}
+            <input
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") void save(); if (e.key === "Escape") setEditing(false) }}
+              placeholder={passwordSet ? "新密码（留空不改）" : "设定密码（可选）"}
+              autoComplete="new-password"
+              disabled={saving}
+              className="h-6 w-24 rounded-md border border-border bg-background px-1.5 text-xs shadow-none"
+            />
+          </span>
+          <span className="inline-flex flex-nowrap items-center gap-1">
+            <input
+              value={dateText}
+              onChange={(e) => setDateText(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") void save(); if (e.key === "Escape") setEditing(false) }}
+              placeholder="每月几号，如 15"
+              inputMode="numeric"
+              disabled={saving}
+              className="h-6 w-24 rounded-md border border-border bg-background px-1.5 text-xs shadow-none"
+            />
+            <span className="text-xs text-muted-foreground">每月重置日</span>
+          </span>
+          {error && <span className="text-xs text-red-500">{error}</span>}
+        </span>
+      ) : (
+        <button
+          type="button"
+          onClick={open}
+          className="server-monitor-link rounded-full px-2 py-0.5 text-xs"
+        >
+          设定
+        </button>
+      )}
+    </span>
   )
 }
 
@@ -268,7 +397,7 @@ function Details({ node }: { node: Node }) {
               </L>
             )}
             {node.traffic_limit !== 0 && (
-              <L label="套餐流量">{node.traffic_limit < 0 ? "不限量" : bytes(node.traffic_limit)}</L>
+              <L label="套餐流量"><PlanTraffic node={node} /></L>
             )}
             {node.traffic_reset_day > 0 && <L label="流量重置">每月 {node.traffic_reset_day} 号</L>}
           </DetailGroup>

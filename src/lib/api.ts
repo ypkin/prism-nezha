@@ -1,4 +1,5 @@
 import { startTransition, useEffect, useState } from "react"
+import { monthUsage, periodKeyFor } from "./format.ts"
 
 export type Metrics = {
   uptime: number
@@ -355,41 +356,180 @@ function ensureSnapshot(maxAgeMs: number, signal?: AbortSignal): Promise<Node[]>
   return snapshotFlight
 }
 
-/* ---------- month/day traffic accumulation (local, from lifetime counters) ---------- */
+/* ---------- month/day traffic accumulation (from lifetime counters) ---------- */
 
-type TrafficBase = { m: string; mrx: number; mtx: number; d: string; drx: number; dtx: number }
+/*
+ * The period baseline lives on the VPS usage store (`/usage/`, same origin,
+ * proxied to a small service next to the frontend) so every device sees the
+ * same period and a cleared browser cache cannot reset the period to zero.
+ * localStorage keeps the same records as a fallback for when the store is
+ * unreachable (dev, or the service down): the page still works, it just
+ * falls back to this browser's own baseline.
+ *
+ * `used` is the metered usage already banked at the baseline: the user can
+ * align it (calibrate) to an external figure, and from then on the display
+ * keeps accumulating upward from it. Agent restarts reset the lifetime
+ * counters, so on a counter drop the accrued metered usage is banked into
+ * `used` instead of being lost.
+ *
+ * `p` is the usage period key (see periodKeyFor): the calendar month by
+ * default, or anchored at the plan's monthly reset day (`reset_day`, 0 =
+ * unset) once the user sets one in the calibration dialog.
+ */
+type TrafficBase = { p: string; mrx: number; mtx: number; d: string; drx: number; dtx: number; used: number; reset_day: number }
 const TRAFFIC_KEY = "glass-nezha:traffic:v1"
 let trafficBases: Record<string, TrafficBase> = {}
 try {
-  trafficBases = JSON.parse(localStorage.getItem(TRAFFIC_KEY) ?? "{}") as Record<string, TrafficBase>
+  const raw = JSON.parse(localStorage.getItem(TRAFFIC_KEY) ?? "{}") as Record<string, Partial<TrafficBase> & { m?: string }>
+  for (const [k, v] of Object.entries(raw)) {
+    if (v && typeof (v.p ?? v.m) === "string") {
+      trafficBases[k] = {
+        p: (v.p ?? v.m) as string, mrx: v.mrx ?? 0, mtx: v.mtx ?? 0,
+        d: v.d ?? "", drx: v.drx ?? 0, dtx: v.dtx ?? 0, used: v.used ?? 0,
+        reset_day: v.reset_day ?? 0,
+      }
+    }
+  }
 } catch { trafficBases = {} }
 let trafficSaveAt = 0
+
+/* ---------- VPS usage store ---------- */
+
+type UsageRecord = { period: string; rx_base: number; tx_base: number; used_base: number; reset_day: number }
+let vpsUsage: Record<string, UsageRecord> | null = null
+/** Whether the store has a calibration password (null = store not reached yet). */
+let vpsPasswordSet: boolean | null = null
+export function usagePasswordSet(): boolean | null { return vpsPasswordSet }
+let vpsUsageStarted = false
+let vpsUsageMerged = false
+let vpsSyncAt = 0
+const calibratedKeys = new Set<string>()
+// Previous push's month_used per node: on a counter drop (agent restart)
+// this is the accrued usage the new baseline must preserve.
+const lastMonthUsed: Record<string, number> = {}
+
+function loadVpsUsage(): void {
+  if (vpsUsageStarted) return
+  vpsUsageStarted = true
+  void (async () => {
+    try {
+      const res = await fetch("/usage/", { signal: AbortSignal.timeout(3000) })
+      if (!res.ok) throw new Error(`usage store ${res.status}`)
+      const data = await res.json() as { nodes?: Record<string, UsageRecord>; password_set?: boolean }
+      vpsUsage = data.nodes && typeof data.nodes === "object" ? data.nodes : {}
+      vpsPasswordSet = typeof data.password_set === "boolean" ? data.password_set : false
+    } catch { vpsUsage = null }
+  })()
+}
+
+async function postUsage(path: string, body: unknown): Promise<number> {
+  try {
+    const res = await fetch(path, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(5000),
+    })
+    return res.status
+  } catch { return 0 }
+}
+
+function usageRecordOf(base: TrafficBase): UsageRecord {
+  return { period: base.p, rx_base: base.mrx, tx_base: base.mtx, used_base: base.used, reset_day: base.reset_day }
+}
+
+/**
+ * User alignment: set this period's used amount; the display accumulates
+ * upward from it. `resetDay` (1-31, 0 = keep the current one) anchors the
+ * period at that day of the month. `password` must match the store's
+ * calibration password once one exists; `newPassword`, when non-empty,
+ * becomes (or replaces) that password. The password itself is never kept
+ * in the browser.
+ */
+export async function calibrateUsage(
+  id: number, usedBytes: number, totalRx: number, totalTx: number,
+  password: string, newPassword: string, resetDay: number,
+): Promise<"ok" | "wrong-password" | "failed"> {
+  const now = new Date()
+  const pad = (n: number) => String(n).padStart(2, "0")
+  const period = periodKeyFor(now, resetDay)
+  const record: UsageRecord = { period, rx_base: totalRx, tx_base: totalTx, used_base: usedBytes, reset_day: resetDay }
+  const status = await postUsage("/usage/calibrate", {
+    id: String(id), ...record,
+    ...(password ? { password } : {}),
+    ...(newPassword ? { new_password: newPassword } : {}),
+  })
+  if (status === 403) return "wrong-password"
+  if (status !== 200) return "failed"
+  calibratedKeys.add(String(id))
+  trafficBases[String(id)] = {
+    p: period, mrx: totalRx, mtx: totalTx,
+    d: `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`, drx: totalRx, dtx: totalTx,
+    used: usedBytes, reset_day: resetDay,
+  }
+  if (!vpsUsage) vpsUsage = {}
+  vpsUsage[String(id)] = record
+  if (newPassword) vpsPasswordSet = true
+  try { localStorage.setItem(TRAFFIC_KEY, JSON.stringify(trafficBases)) } catch { /* storage may be blocked */ }
+  return "ok"
+}
 
 function applyTraffic(nodes: Node[]): Node[] {
   const now = new Date()
   const pad = (n: number) => String(n).padStart(2, "0")
-  const monthKey = `${now.getFullYear()}-${pad(now.getMonth() + 1)}`
-  const dayKey = `${monthKey}-${pad(now.getDate())}`
+  const dayKey = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`
   let dirty = false
+  // First push after the VPS store loads: adopt its current-period baselines
+  // (except nodes calibrated in this session, which are already newer).
+  if (vpsUsage !== null && !vpsUsageMerged) {
+    vpsUsageMerged = true
+    for (const node of nodes) {
+      const key = String(node.id)
+      const rec = vpsUsage[key]
+      if (!rec || calibratedKeys.has(key)) continue
+      const resetDay = rec.reset_day ?? 0
+      if (rec.period !== periodKeyFor(now, resetDay)) continue
+      trafficBases[key] = {
+        p: rec.period, mrx: rec.rx_base, mtx: rec.tx_base,
+        d: dayKey, drx: node.total_rx, dtx: node.total_tx, used: rec.used_base,
+        reset_day: resetDay,
+      }
+      dirty = true
+    }
+  }
   for (const node of nodes) {
     const key = String(node.id)
     let base = trafficBases[key]
-    if (!base || base.m !== monthKey) {
-      base = { m: monthKey, mrx: node.total_rx, mtx: node.total_tx, d: dayKey, drx: node.total_rx, dtx: node.total_tx }
+    const periodKey = periodKeyFor(now, base?.reset_day ?? 0)
+    if (!base || base.p !== periodKey) {
+      base = {
+        p: periodKey, mrx: node.total_rx, mtx: node.total_tx,
+        d: dayKey, drx: node.total_rx, dtx: node.total_tx, used: 0,
+        reset_day: base?.reset_day ?? 0,
+      }
       trafficBases[key] = base
       dirty = true
     } else if (base.d !== dayKey) {
       base.d = dayKey; base.drx = node.total_rx; base.dtx = node.total_tx
       dirty = true
     }
-    // Agent restarts reset the lifetime counters; re-baseline instead of
-    // reporting a negative month.
-    if (node.total_rx < base.mrx || node.total_tx < base.mtx) { base.mrx = node.total_rx; base.mtx = node.total_tx; dirty = true }
+    // Agent restarts reset the lifetime counters; bank the accrued metered
+    // usage into `used` instead of reporting a smaller month.
+    if (node.total_rx < base.mrx || node.total_tx < base.mtx) {
+      base.used = lastMonthUsed[key] ?? base.used
+      base.mrx = node.total_rx; base.mtx = node.total_tx
+      dirty = true
+    }
     if (node.total_rx < base.drx || node.total_tx < base.dtx) { base.drx = node.total_rx; base.dtx = node.total_tx; dirty = true }
     node.month_rx = node.total_rx - base.mrx
     node.month_tx = node.total_tx - base.mtx
     node.day_rx = node.total_rx - base.drx
     node.day_tx = node.total_tx - base.dtx
+    // Banked usage plus this push's delta, metered the way the plan meters it.
+    node.month_used = (base.used || 0) + monthUsage({ month_rx: node.month_rx, month_tx: node.month_tx, traffic_mode: node.traffic_mode })
+    lastMonthUsed[key] = node.month_used
+    // The reset day comes from the VPS record, so the 流量重置 row lights up.
+    node.traffic_reset_day = base.reset_day
     if (node.metrics) {
       node.metrics.month_rx = node.month_rx
       node.metrics.month_tx = node.month_tx
@@ -400,6 +540,24 @@ function applyTraffic(nodes: Node[]): Node[] {
   if (dirty || Date.now() - trafficSaveAt > 15000) {
     trafficSaveAt = Date.now()
     try { localStorage.setItem(TRAFFIC_KEY, JSON.stringify(trafficBases)) } catch { /* storage may be blocked */ }
+  }
+  // VPS sync: immediate on dirty events, otherwise at most once a minute.
+  // The snapshot banks the current month_used into `used` and re-bases the
+  // counters, so an agent restart while the page is closed loses at most
+  // a minute of traffic instead of the whole banked period. Only nodes in
+  // this push are posted, so an offline node's stored record is untouched.
+  const nowMs = Date.now()
+  if (vpsUsage !== null && (dirty || nowMs - vpsSyncAt > 60000)) {
+    vpsSyncAt = nowMs
+    const dict: Record<string, UsageRecord> = {}
+    for (const node of nodes) {
+      const base = trafficBases[String(node.id)]
+      if (!base) continue
+      base.used = node.month_used ?? base.used
+      base.mrx = node.total_rx; base.mtx = node.total_tx
+      dict[String(node.id)] = usageRecordOf(base)
+    }
+    void postUsage("/usage/sync", { nodes: dict })
   }
   return nodes
 }
@@ -621,6 +779,9 @@ type NodeObserver = {
  * `/ws` push keeps it live, and snapshot polling is the fallback.
  */
 export function subscribeNodes({ onNodes, onError }: NodeObserver) {
+  // Month baselines come from the VPS store when it answers; otherwise the
+  // localStorage fallback in applyTraffic keeps the page working.
+  loadVpsUsage()
   let socket: WebSocket | null = null
   let poll: ReturnType<typeof setTimeout> | null = null
   let retry: ReturnType<typeof setTimeout> | null = null
