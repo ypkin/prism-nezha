@@ -1,0 +1,2522 @@
+/* Scan this app's own source and nothing else. */
+@import "tailwindcss" source(none);
+@source "../index.html";
+@source "../src";
+
+@custom-variant dark (&:is(.dark *));
+
+/* Once UI site replication.
+   The user's selected palette is neutral=gray, brand=moss, accent=orange,
+   solid=contrast, solidStyle=flat, border=conservative, surface=filled. */
+:root {
+  color-scheme: light;
+  --radius: 0.75rem;
+
+  /* neutral: gray */
+  --once-gray-100:  oklch(0.1448 0 0);
+  --once-gray-200:  oklch(0.1957 0 0);
+  --once-gray-300:  oklch(0.3677 0 0);
+  --once-gray-400:  oklch(0.4640 0 0);
+  --once-gray-500:  oklch(0.5624 0 0);
+  --once-gray-600:  oklch(0.6698 0 0);
+  --once-gray-700:  oklch(0.7636 0 0);
+  --once-gray-800:  oklch(0.8638 0 0);
+  --once-gray-900:  oklch(0.9067 0 0);
+  --once-gray-1000: oklch(0.9461 0 0);
+  --once-gray-1100: oklch(0.9642 0 0);
+  --once-gray-1200: oklch(0.9821 0 0);
+
+  /* brand: moss (the olive-green swatch selected in the Once UI panel) */
+  --once-moss-100:  oklch(0.1428 0.0184 124.91);
+  --once-moss-200:  oklch(0.1932 0.0314 125.79);
+  --once-moss-300:  oklch(0.3622 0.0864 129.16);
+  --once-moss-400:  oklch(0.4533 0.1200 131.81);
+  --once-moss-500:  oklch(0.5476 0.1544 134.27);
+  --once-moss-600:  oklch(0.6530 0.1960 136.49);
+  --once-moss-700:  oklch(0.7464 0.2307 138.07);
+  --once-moss-800:  oklch(0.8461 0.2198 139.34);
+  --once-moss-900:  oklch(0.8918 0.1711 141.04);
+  --once-moss-1000: oklch(0.9363 0.1073 142.78);
+  --once-moss-1100: oklch(0.9591 0.0621 142.95);
+  --once-moss-1200: oklch(0.9806 0.0229 143.37);
+
+  /* semantic online status stays Once UI green rather than brand moss */
+  --once-green-600:  oklch(0.6486 0.1950 146.22);
+  --once-green-700:  oklch(0.7426 0.2344 144.85);
+
+  /* accent: orange */
+  --once-orange-100:  oklch(0.1419 0.0236 27.24);
+  --once-orange-200:  oklch(0.2001 0.0446 28.40);
+  --once-orange-300:  oklch(0.3850 0.1356 32.92);
+  --once-orange-400:  oklch(0.4850 0.1760 33.49);
+  --once-orange-500:  oklch(0.5834 0.2086 34.23);
+  --once-orange-600:  oklch(0.6902 0.2005 39.65);
+  --once-orange-700:  oklch(0.7786 0.1403 47.34);
+  --once-orange-800:  oklch(0.8719 0.0781 55.14);
+  --once-orange-900:  oklch(0.9115 0.0506 56.44);
+  --once-orange-1000: oklch(0.9487 0.0271 56.76);
+
+  /* light theme mirrors Once UI's light semantic mapping */
+  --background: #ffffff;
+  --dot-color: rgb(0 0 0 / .09);
+  --foreground: var(--once-gray-100);
+  --card: #ffffff;
+  --card-foreground: var(--once-gray-100);
+  --popover: #ffffff;
+  --popover-foreground: var(--once-gray-100);
+
+  --primary: var(--once-moss-500);
+  --primary-strong: var(--once-moss-400);
+  --primary-soft: var(--once-moss-1000);
+  --primary-softer: var(--once-moss-1100);
+  --primary-foreground: #ffffff;
+
+  --accent: var(--once-orange-600);
+  --accent-soft: var(--once-orange-1000);
+  --accent-foreground: var(--once-orange-100);
+
+  --secondary: var(--once-gray-1100);
+  --secondary-foreground: var(--once-gray-200);
+  --muted: var(--once-gray-1100);
+  --muted-foreground: var(--once-gray-500);
+  --destructive: oklch(0.6930 0.1970 27.63);
+  --border: var(--once-gray-900);
+  --input: var(--once-gray-900);
+  --ring: var(--once-moss-600);
+  --nav: rgb(255 255 255 / .94);
+
+  /* Once UI solid=contrast + solidStyle=flat */
+  --solid-brand: var(--once-gray-300);
+  --solid-brand-hover: var(--once-gray-200);
+  --solid-on-brand: #ffffff;
+  --solid-border: transparent;
+  --tag-active-bg: var(--once-gray-900);
+  --tag-active-shadow: 0 1px 4px rgb(0 0 0 / .10), 0 0 0 1px color-mix(in oklab, var(--border) 92%, transparent);
+  --meter-fill: #302F33;
+
+  --chart-1: var(--once-moss-600);
+  --chart-2: oklch(0.6743 0.1670 261.54);
+  --chart-3: var(--once-orange-600);
+  --chart-4: oklch(0.6833 0.1679 287.37);
+  --chart-5: oklch(0.6567 0.1112 194.02);
+
+  --warn: var(--once-orange-600);
+  --danger: oklch(0.6930 0.1970 27.63);
+  --bar-track: var(--once-gray-1000);
+  --bar-text: #ffffff;
+  --bar-ok: linear-gradient(to right, var(--once-moss-500), var(--once-moss-600));
+  --bar-warn: linear-gradient(to right, var(--once-orange-500), var(--once-orange-600));
+  --bar-danger: linear-gradient(to right, oklch(0.5877 0.2394 28.95), oklch(0.6930 0.1970 27.63));
+  --dot-online: linear-gradient(180deg, var(--once-green-700), var(--once-green-600));
+  --dot-offline: linear-gradient(180deg, oklch(0.7801 0.1286 27.87), oklch(0.6930 0.1970 27.63));
+}
+
+.dark {
+  color-scheme: dark;
+  --background: var(--once-gray-100);
+  --dot-color: rgb(255 255 255 / .08);
+  --foreground: var(--once-gray-1200);
+  --card: var(--once-gray-200);
+  --card-foreground: var(--once-gray-1200);
+  --popover: var(--once-gray-200);
+  --popover-foreground: var(--once-gray-1200);
+
+  --primary: var(--once-moss-900);
+  --primary-strong: var(--once-moss-1000);
+  --primary-soft: var(--once-moss-200);
+  --primary-softer: var(--once-moss-200);
+  --primary-foreground: var(--once-gray-100);
+
+  --accent: var(--once-orange-700);
+  --accent-soft: var(--once-orange-200);
+  --accent-foreground: var(--once-gray-1200);
+
+  --secondary: var(--once-gray-300);
+  --secondary-foreground: var(--once-gray-1100);
+  --muted: var(--once-gray-300);
+  --muted-foreground: var(--once-gray-700);
+  --destructive: oklch(0.7801 0.1286 27.87);
+  --border: var(--once-gray-300);
+  --input: var(--once-gray-300);
+  --ring: var(--once-moss-800);
+  --nav: rgb(24 24 24 / .94);
+
+  --solid-brand: var(--once-gray-1000);
+  --solid-brand-hover: #ffffff;
+  --solid-on-brand: #000000;
+  --solid-border: transparent;
+  --tag-active-bg: var(--once-gray-300);
+  --tag-active-shadow: 0 2px 8px rgb(0 0 0 / .34), 0 0 0 1px color-mix(in oklab, var(--border) 80%, transparent);
+  --meter-fill: #C6C6BE;
+
+  --chart-1: var(--once-moss-800);
+  --chart-2: oklch(0.7670 0.1165 257.88);
+  --chart-3: var(--once-orange-700);
+  --chart-4: oklch(0.7749 0.1187 288.76);
+  --chart-5: oklch(0.7499 0.1286 192.20);
+
+  --bar-track: var(--once-gray-300);
+}
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-nav: var(--nav);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-warn: var(--warn);
+  --color-danger: var(--danger);
+  --color-bar-track: var(--bar-track);
+  --color-bar-text: var(--bar-text);
+}
+
+@font-face {
+  font-family: "Sarasa Term SC";
+  src: url(https://cdn.jsdelivr.net/gh/hi2shark/nazhua@main/fonts/SarasaTermSC/SarasaTermSC-SemiBold.woff2) format("woff2"), url(https://cdn.jsdelivr.net/gh/hi2shark/nazhua@main/fonts/SarasaTermSC/SarasaTermSC-SemiBold.woff) format("woff");
+  font-display: swap;
+}
+
+@layer base {
+  * { @apply border-border outline-ring/50; }
+  html { scrollbar-gutter: stable; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+  body {
+    @apply text-foreground;
+    background: var(--background);
+    font-family: "Sarasa Term SC", "Microsoft YaHei", "微软雅黑", "PingFang SC", "HanHei SC", "Helvetica Neue", Helvetica, "STHeitiSC-Light", Arial, sans-serif;
+    letter-spacing: -0.01em;
+    background-image: radial-gradient(transparent 1px, var(--dot-color) 1px);
+    background-size: 3px 3px;
+  }
+  #root { min-height: 100svh; }
+}
+
+.tnum { font-variant-numeric: tabular-nums; }
+
+.app-shell { background: transparent; }
+
+/* Once UI page language: the selected Neutral=Gray drives the page atmosphere.
+   Brand Moss is reserved for emphasis; page and loading surfaces stay neutral. */
+.once-backdrop {
+  overflow: hidden;
+  background:
+    radial-gradient(48% 22% at 52% 2%, oklch(0.9461 0 0 / .72), transparent 76%),
+    linear-gradient(180deg, rgb(255 255 255 / .42), rgb(255 255 255 / .42)),
+    url("https://v2.xxapi.cn/api/random4kPic?type=wallpaper&return=302") center / cover no-repeat,
+    linear-gradient(180deg, #ffffff 0%, #fcfcfc 48%, #ffffff 100%);
+}
+
+.once-backdrop::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: .28;
+  background-image: radial-gradient(circle, oklch(0.6698 0 0 / .22) .65px, transparent .75px);
+  background-size: 20px 20px;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 32%);
+  mask-image: linear-gradient(to bottom, #000 0%, transparent 32%);
+}
+
+.dark .once-backdrop {
+  background:
+    radial-gradient(42% 24% at 52% 2%, oklch(0.3677 0 0 / .26), transparent 76%),
+    linear-gradient(180deg, rgb(0 0 0 / .3), rgb(0 0 0 / .3)),
+    url("https://v2.xxapi.cn/api/random4kPic?type=wallpaper&return=302") center / cover no-repeat,
+    var(--once-gray-100);
+}
+
+.dark .once-backdrop::before {
+  opacity: .16;
+  background-image: radial-gradient(circle, oklch(0.7636 0 0 / .22) .65px, transparent .75px);
+}
+
+.once-header {
+  border-bottom: 1px solid var(--border);
+  background-color: var(--nav);
+  background-image: radial-gradient(transparent 1px, var(--dot-color) 1px);
+  background-size: 3px 3px;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.once-header-inner { color: var(--foreground); }
+
+.once-brand {
+  color: var(--foreground);
+  font-weight: 650;
+  letter-spacing: -0.025em;
+}
+
+.once-nav {
+  padding: 2px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+}
+
+.once-nav-item,
+.once-admin {
+  min-height: 32px;
+  border: 1px solid transparent;
+  color: var(--muted-foreground);
+  background: transparent;
+  transition: background .14s ease, color .14s ease, border-color .14s ease;
+}
+
+.once-nav-item:hover,
+.once-nav-item:focus-visible {
+  color: var(--foreground);
+  background: var(--card);
+}
+
+.once-nav-item[aria-current="page"] {
+  color: var(--foreground);
+  border-color: var(--border);
+  background: var(--tag-active-bg);
+  box-shadow: var(--tag-active-shadow);
+}
+
+.once-admin {
+  color: var(--foreground);
+  border-color: var(--border);
+  background: var(--tag-active-bg);
+  box-shadow: var(--tag-active-shadow);
+}
+
+.once-admin:hover,
+.once-admin:focus-visible {
+  background: var(--tag-active-bg);
+}
+
+.once-solid-button {
+  color: var(--solid-on-brand);
+  border: 0;
+  background: var(--solid-brand);
+}
+
+.once-solid-button:hover {
+  background: var(--solid-brand-hover);
+}
+
+/* surface=filled: white cards in light mode, neutral-gray filled surfaces in dark */
+.server-summary,
+.server-card,
+.node-picker,
+.monitor-node-head,
+.monitor-range,
+.monitor-chart-card,
+.monitor-note,
+.detail-float-card,
+.latency-float-card {
+  color: var(--card-foreground);
+  border-color: var(--border);
+  background: var(--card);
+  box-shadow: none;
+}
+
+.server-summary {
+  border-radius: 12px;
+  background: transparent;
+}
+
+.server-card {
+  overflow: clip;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  /* iOS Safari can retain stale paint coordinates for animated descendants
+     across client-side route switches when content-visibility is enabled. */
+  content-visibility: visible;
+  transition: border-color .16s ease, background-color .16s ease;
+}
+
+.server-card-hit {
+  border-radius: inherit;
+  outline: none;
+}
+
+.server-card-hit:focus-visible {
+  box-shadow: inset 0 0 0 2px color-mix(in oklab, var(--primary) 42%, transparent);
+}
+
+.server-metrics {
+  overflow: hidden;
+  border: 1px solid var(--once-gray-1000);
+  border-radius: 10px;
+  background: var(--once-gray-1200);
+}
+
+.metric-tile {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent;
+  box-shadow: none;
+}
+
+.server-metrics .metric-tile + .metric-tile {
+  border-left: 1px solid var(--once-gray-1000) !important;
+}
+
+.dark .server-metrics {
+  border-color: var(--once-gray-300);
+  background: var(--once-gray-300);
+}
+
+.dark .server-metrics .metric-tile + .metric-tile {
+  border-left-color: var(--once-gray-400) !important;
+}
+
+.metric-tile svg,
+.summary-icon,
+.detail-card-icon {
+  color: var(--primary) !important;
+}
+
+.metric-tile > span:last-child {
+  background: var(--bar-track);
+}
+
+.summary-icon,
+.detail-card-icon {
+  border: 1px solid color-mix(in oklab, var(--primary) 18%, var(--border));
+  background: color-mix(in oklab, var(--primary-soft) 48%, #ffffff);
+  box-shadow: none;
+}
+
+.dark .summary-icon,
+.dark .detail-card-icon {
+  background: color-mix(in oklab, var(--primary-soft) 42%, var(--card));
+}
+
+.server-online-pill,
+.monitor-chip {
+  color: var(--muted-foreground);
+  border-color: var(--border);
+  background: var(--card);
+  box-shadow: none;
+}
+
+.system-detail-card,
+.latency-float-card {
+  border-radius: 12px;
+  background: var(--card);
+}
+
+.system-detail-card { padding: 15px 17px; }
+
+.monitor-shell {
+  overflow: visible;
+  border-color: transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.node-picker,
+.monitor-node-head,
+.monitor-range,
+.monitor-chart-card {
+  border-color: var(--border);
+  background: var(--card);
+}
+
+.monitor-chart-card {
+  overflow: hidden;
+  min-width: 0;
+  box-shadow: none;
+}
+
+.detail-float-card .detail-os-icon {
+  fill: color-mix(in oklab, var(--brand) 72%, var(--foreground));
+}
+
+.once-tool-button {
+  color: var(--muted-foreground) !important;
+  border: 1px solid var(--border) !important;
+  background: var(--card) !important;
+  box-shadow: 0 2px 7px rgb(0 0 0 / .045) !important;
+}
+
+.once-tool-button:hover {
+  color: var(--foreground) !important;
+  background: var(--secondary) !important;
+}
+
+/* Small status core with a restrained pulse, inspired by the blog's Monitor link. */
+.status-orbit,
+.dark .status-orbit {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.status-dot {
+  isolation: isolate;
+}
+
+.status-dot-halo {
+  inset: 9%;
+  z-index: 1;
+  pointer-events: none;
+  background: var(--once-gray-1100);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--once-gray-700) 24%, transparent);
+}
+
+.status-dot-core {
+  inset: 20%;
+  z-index: 2;
+  pointer-events: none;
+  background: var(--once-gray-600);
+  box-shadow: none;
+}
+
+.status-dot[data-status="online"] .status-dot-halo {
+  background: color-mix(in oklab, var(--once-green-700) 16%, #fff);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--once-green-600) 18%, transparent);
+}
+
+.status-dot[data-status="online"] .status-dot-core {
+  background: var(--once-green-600);
+  box-shadow: 0 0 4px oklch(0.7426 0.2344 144.85 / .24);
+}
+
+.status-dot[data-status="offline"] .status-dot-halo {
+  background: color-mix(in oklab, var(--destructive) 12%, #fff);
+}
+
+.status-dot[data-status="offline"] .status-dot-core {
+  background: var(--destructive);
+  box-shadow: 0 0 4px color-mix(in oklab, var(--destructive) 28%, transparent);
+}
+
+.status-dot-pulse {
+  inset: 9%;
+  z-index: 0;
+  pointer-events: none;
+  background: var(--once-green-700);
+  transform: scale(.82);
+  transform-origin: center;
+  opacity: .3;
+  animation: once-status-pulse 1.6s cubic-bezier(0, 0, .2, 1) infinite;
+}
+
+.status-dot[data-status="offline"] .status-dot-pulse {
+  background: var(--destructive);
+}
+
+@keyframes once-status-pulse {
+  0% {
+    transform: scale(.82);
+    opacity: .3;
+  }
+  72%,
+  100% {
+    transform: scale(1.55);
+    opacity: 0;
+  }
+}
+
+.dark .status-dot-halo {
+  background: var(--once-gray-300);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--once-gray-700) 18%, transparent);
+}
+
+.dark .status-dot-core {
+  background: var(--once-gray-700);
+}
+
+.dark .status-dot[data-status="online"] .status-dot-halo {
+  background: color-mix(in oklab, var(--once-green-700) 18%, var(--once-gray-200));
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--once-green-700) 20%, transparent);
+}
+
+.dark .status-dot[data-status="online"] .status-dot-core {
+  background: var(--once-green-700);
+  box-shadow: 0 0 5px oklch(0.7426 0.2344 144.85 / .30);
+}
+
+.dark .status-dot[data-status="offline"] .status-dot-halo {
+  background: color-mix(in oklab, var(--destructive) 16%, var(--once-gray-200));
+}
+
+.dark .status-dot[data-status="offline"] .status-dot-core {
+  box-shadow: 0 0 4px color-mix(in oklab, var(--destructive) 35%, transparent);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .server-card:hover {
+    border-color: color-mix(in oklab, var(--border) 64%, var(--once-gray-600) 36%);
+  }
+
+  .monitor-chart-card:hover {
+    border-color: color-mix(in oklab, var(--border) 68%, var(--once-gray-600) 32%);
+  }
+}
+
+@media (max-width: 760px) {
+  .once-header-inner { height: 52px; }
+
+  .once-nav {
+    border-radius: 11px;
+  }
+
+  .server-card {
+    border-radius: 12px;
+  }
+
+  .server-summary,
+  .system-detail-card,
+  .latency-float-card {
+    border-radius: 12px;
+  }
+
+  .metric-tile { min-height: 40px; }
+
+  .once-backdrop::before { opacity: .20; }
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .status-dot-pulse {
+    animation: none;
+    opacity: .12;
+    transform: scale(1);
+  }
+
+  .server-card,
+  .server-card *,
+  .monitor-chart-card {
+    transition-duration: 0s !important;
+  }
+
+  .monitor-chart-card:hover {
+    transform: none;
+  }
+}
+
+
+/* Loading states use the selected Once UI Neutral=Gray.
+   Never use Accent Orange for chart skeletons. */
+.once-skeleton {
+  background:
+    linear-gradient(
+      90deg,
+      var(--once-gray-1100) 0%,
+      var(--once-gray-1000) 42%,
+      var(--once-gray-1100) 72%
+    );
+  background-size: 220% 100%;
+  border: 1px solid var(--once-gray-1000);
+}
+
+.dark .once-skeleton {
+  background:
+    linear-gradient(
+      90deg,
+      var(--once-gray-300) 0%,
+      var(--once-gray-400) 42%,
+      var(--once-gray-300) 72%
+    );
+  background-size: 220% 100%;
+  border-color: var(--once-gray-400);
+}
+
+
+/* Gray and black carry structure; Moss stays out of routine metrics. */
+:root {
+  --chart-1: var(--once-gray-300);
+  --chart-2: var(--once-gray-500);
+  --chart-3: var(--once-orange-600);
+  --chart-4: var(--once-gray-400);
+  --chart-5: var(--once-gray-600);
+  --bar-ok: linear-gradient(to right, var(--once-gray-400), var(--once-gray-300));
+}
+
+.dark {
+  --chart-1: var(--once-gray-1000);
+  --chart-2: var(--once-gray-800);
+  --chart-3: var(--once-orange-700);
+  --chart-4: var(--once-gray-900);
+  --chart-5: var(--once-gray-700);
+  --bar-ok: linear-gradient(to right, var(--once-gray-800), var(--once-gray-1000));
+}
+
+/* The overview is a first-class server card, not a secondary summary strip. */
+.server-summary-card {
+  background: var(--card);
+}
+
+.summary-icon {
+  color: var(--once-gray-400) !important;
+  border: 1px solid var(--once-gray-900);
+  background: var(--once-gray-1100);
+}
+
+.dark .summary-icon {
+  color: var(--once-gray-900) !important;
+  border-color: var(--once-gray-400);
+  background: var(--once-gray-300);
+}
+
+.summary-metrics {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.server-summary-card .summary-metrics {
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+/* Shared surface radius matches the detail card. */
+.server-card {
+  border-radius: var(--radius);
+}
+
+.server-metrics {
+  border-radius: var(--radius);
+  background: var(--once-gray-1200);
+}
+
+.metric-tile svg {
+  color: var(--once-gray-400) !important;
+}
+
+.dark .metric-tile svg {
+  color: var(--once-gray-900) !important;
+}
+
+/* Monitor page: neutral group hierarchy instead of Moss-selected rows and green charts. */
+.monitor-node-head,
+.monitor-range,
+.monitor-chart-card,
+.monitor-note {
+  border-radius: var(--radius);
+  border-color: var(--once-gray-1000);
+  background: #fff;
+}
+
+.node-picker {
+  border-radius: var(--radius);
+  border-color: var(--once-gray-1000);
+  background: #fff;
+}
+
+.dark .node-picker,
+.dark .monitor-node-head,
+.dark .monitor-range,
+.dark .monitor-chart-card,
+.dark .monitor-note {
+  border-color: var(--once-gray-300);
+  background: var(--once-gray-200);
+}
+
+.node-picker {
+  padding: 12px;
+}
+
+.node-picker > input { border-radius: var(--radius); }
+
+.monitor-node-link {
+  color: var(--foreground);
+  border: 1px solid var(--once-gray-1000);
+  border-radius: 999px;
+  background: #fff;
+}
+
+.monitor-node-link:hover {
+  background: var(--once-gray-1200);
+}
+
+.monitor-node-link[aria-current="page"] {
+  color: var(--foreground);
+  border-color: var(--border);
+  background: var(--tag-active-bg);
+  box-shadow: var(--tag-active-shadow);
+  font-weight: 560;
+}
+
+.dark .monitor-node-link {
+  border-color: var(--once-gray-400);
+  background: var(--once-gray-200);
+}
+
+.dark .monitor-node-link:hover {
+  background: var(--once-gray-300);
+}
+
+.dark .monitor-node-link[aria-current="page"] {
+  color: var(--foreground);
+  border-color: var(--border);
+  background: var(--tag-active-bg);
+}
+
+.monitor-range {
+  gap: 6px;
+  padding: 7px;
+}
+
+.monitor-range-tab,
+.monitor-chip {
+  color: var(--muted-foreground);
+  border-color: var(--border);
+  border-radius: 999px;
+  background-color: var(--card);
+  background-image: linear-gradient(180deg, transparent, color-mix(in oklab, var(--foreground) 3%, transparent));
+  box-shadow: 0 1px 2px rgb(0 0 0 / .035), 0 12px 28px -25px rgb(0 0 0 / .22);
+}
+
+.dark .monitor-range-tab,
+.dark .monitor-chip {
+  box-shadow: 0 1px 2px rgb(0 0 0 / .12), 0 14px 30px -25px rgb(0 0 0 / .55);
+}
+
+.monitor-range-tab:hover { color: var(--foreground); }
+
+.monitor-range-tab[aria-pressed="true"],
+.monitor-range-tab[aria-pressed="true"]:hover,
+.monitor-chip[aria-pressed="true"],
+.monitor-chip[aria-pressed="true"]:hover,
+.dark .monitor-range-tab[aria-pressed="true"],
+.dark .monitor-range-tab[aria-pressed="true"]:hover,
+.dark .monitor-chip[aria-pressed="true"],
+.dark .monitor-chip[aria-pressed="true"]:hover {
+  color: var(--foreground);
+  border-color: var(--border);
+  background-color: var(--tag-active-bg);
+  background-image: none;
+  box-shadow: var(--tag-active-shadow);
+}
+
+.monitor-node-head {
+  padding: 18px 20px;
+}
+
+.monitor-chart-card {
+  padding: 18px;
+  box-shadow: none;
+}
+
+.monitor-chart-card h4 {
+  color: var(--once-gray-500);
+  font-size: 13px;
+  letter-spacing: -0.01em;
+}
+
+/* Brand Moss stays available for rare actions, but data visualization is neutral. */
+.detail-card-icon {
+  color: var(--once-gray-400) !important;
+  border-color: var(--once-gray-900) !important;
+  background: var(--once-gray-1100) !important;
+}
+
+.dark .detail-card-icon {
+  color: var(--once-gray-900) !important;
+  border-color: var(--once-gray-400) !important;
+  background: var(--once-gray-300) !important;
+}
+
+@media (max-width: 760px) {
+  .server-card {
+    border-radius: var(--radius);
+  }
+
+  .monitor-node-head,
+  .monitor-range,
+  .monitor-chart-card,
+  .monitor-note {
+    border-radius: var(--radius);
+  }
+
+  .monitor-chart-card {
+    padding: 16px;
+  }
+}
+
+
+/* Final interaction polish: pressed monitor tags and probe chips are driven by
+   semantic state attributes, not transient class combinations. */
+.monitor-range-tab,
+.monitor-chip {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.monitor-range-tab:focus-visible,
+.monitor-chip:focus-visible,
+.monitor-node-link:focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--foreground) 28%, transparent);
+  outline-offset: 2px;
+}
+
+.monitor-chip[aria-pressed="false"] {
+  opacity: .62;
+}
+
+.monitor-chip[aria-pressed="true"] {
+  opacity: 1;
+}
+
+
+/* Touch Safari keeps :hover after taps. On coarse pointers, stateful controls
+   are painted only from aria-current / aria-pressed so route and range tags
+   cannot look selected twice after navigation. */
+@media (hover: none), (pointer: coarse) {
+  .once-nav-item:hover {
+    color: var(--muted-foreground);
+    background: transparent;
+  }
+
+  .once-nav-item[aria-current="page"],
+  .once-nav-item[aria-current="page"]:hover {
+    color: var(--foreground);
+    background: var(--tag-active-bg);
+  }
+
+  .monitor-node-link:hover {
+    background: #fff;
+  }
+
+  .monitor-node-link[aria-current="page"],
+  .monitor-node-link[aria-current="page"]:hover {
+    color: var(--foreground);
+    background: var(--tag-active-bg);
+  }
+
+  .dark .monitor-node-link:hover {
+    background: var(--once-gray-200);
+  }
+
+  .dark .monitor-node-link[aria-current="page"],
+  .dark .monitor-node-link[aria-current="page"]:hover {
+    color: var(--foreground);
+    background: var(--tag-active-bg);
+  }
+
+  .monitor-range-tab:hover {
+    color: var(--muted-foreground);
+  }
+}
+
+
+/* Details live in an overlay drawer so opening a node never reflows the list. */
+.server-detail-backdrop {
+  background: rgb(0 0 0 / .26);
+  animation: detail-backdrop-in .16s ease-out both;
+}
+
+.server-detail-drawer {
+  contain: layout paint style;
+  color: var(--foreground);
+  border-left: 1px solid var(--border);
+  background: var(--background);
+  box-shadow: -24px 0 64px -36px rgb(0 0 0 / .42);
+  animation: detail-drawer-in .22s cubic-bezier(.2,.8,.2,1) both;
+  will-change: transform;
+}
+
+.server-detail-head {
+  border-color: var(--border);
+  background: color-mix(in oklab, var(--background) 94%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.server-detail-close {
+  color: var(--once-gray-500);
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.server-detail-close:hover,
+.server-detail-close:focus-visible {
+  color: var(--once-gray-200);
+  background: var(--once-gray-1100);
+}
+
+.server-detail-close:active {
+  transform: scale(.94);
+}
+
+.dark .server-detail-close {
+  color: var(--once-gray-800);
+  background: transparent;
+}
+
+.dark .server-detail-close:hover,
+.dark .server-detail-close:focus-visible {
+  color: var(--once-gray-1200);
+  background: var(--once-gray-300);
+}
+
+.server-detail-scroll {
+  scrollbar-gutter: stable;
+}
+
+.detail-groups {
+  margin: 0;
+}
+
+.detail-group {
+  padding: 12px 14px;
+}
+
+.detail-group + .detail-group {
+  border-top: 1px solid var(--border);
+}
+
+.system-detail-card .detail-groups + .detail-groups {
+  border-top: 1px solid var(--border);
+}
+
+/* Wide drawers pair the groups into two rows: 1|2 and 4|5, latency between. */
+.server-detail-drawer { container-type: inline-size; }
+@container (min-width: 500px) {
+  .detail-groups { grid-template-columns: 1fr 1fr; }
+  .detail-group + .detail-group { border-top: 0; border-left: 1px solid var(--border); }
+  .detail-group { padding: 12px 10px; font-size: 10.5px; }
+  .detail-group .tnum { overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.3px; }
+}
+/* Phones: the four groups form a 田 grid (2×2). Lines that fit stay
+   one-line label|value rows on top; measured non-fitting lines sink to
+   the bottom of their group, stack label over value and may wrap. */
+@container (min-width: 340px) and (max-width: 499px) {
+  .detail-groups { grid-template-columns: 1fr 1fr; }
+  .detail-group + .detail-group { border-top: 0; border-left: 1px solid var(--border); }
+  .server-detail-scroll { padding: 6px; }
+  .system-detail-card { padding: 6px; }
+  .detail-group { padding: 8px 4px; font-size: 10px; line-height: 1.35; }
+  .detail-group h4 { margin-bottom: 4px; }
+  .detail-group .space-y-1 { display: flex; flex-direction: column; }
+  .detail-group .space-y-1 > div { grid-template-columns: 72px minmax(0, 1fr); gap: 5px; }
+  .detail-group [data-line-label] > span:first-child { font-size: 9px; }
+  /* Label column per group, sized to that group's longest label
+     (System "Architecture", Resources "Memory", Service "Plan Traffic";
+     Network keeps the 72px default for "Total Traffic"). */
+  .system-detail-card > .detail-groups:first-of-type > .detail-group:first-child .space-y-1 > div:not(.line-wide) { grid-template-columns: 66px minmax(0, 1fr); }
+  .system-detail-card > .detail-groups:first-of-type > .detail-group:last-child .space-y-1 > div:not(.line-wide) { grid-template-columns: 34px minmax(0, 1fr); }
+  .system-detail-card > .detail-groups:last-of-type > .detail-group:last-child .space-y-1 > div:not(.line-wide) { grid-template-columns: 66px minmax(0, 1fr); }
+  .detail-group .space-y-1 > div.line-wide { order: 99; grid-template-columns: 1fr; margin-top: 5px; }
+  .detail-group .line-wide .tnum { white-space: normal; line-height: 1.3; }
+}
+@container (max-width: 339px) {
+  .detail-group { line-height: 1.35; }
+  .detail-group .space-y-1 { display: flex; flex-direction: column; }
+  .detail-group .line-wide { order: 99; grid-template-columns: 1fr; margin-top: 5px; }
+  .detail-group .line-wide .tnum { white-space: normal; line-height: 1.3; }
+}
+
+.system-detail-card {
+  padding: 12px;
+}
+
+.latency-float-card {
+  overflow: hidden;
+}
+
+@keyframes detail-backdrop-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes detail-drawer-in {
+  from { transform: translate3d(26px,0,0); opacity: .72; }
+  to { transform: translate3d(0,0,0); opacity: 1; }
+}
+
+/* Monitor: one grouped identity/range surface, then the data cards. */
+.monitor-overview {
+  border-color: var(--once-gray-1000);
+  background: #fff;
+  border-radius: var(--radius);
+}
+
+.dark .monitor-overview {
+  border-color: var(--once-gray-300);
+  background: var(--once-gray-200);
+}
+
+.monitor-overview .monitor-node-head,
+.monitor-overview .monitor-range,
+.monitor-overview .monitor-note {
+  border-radius: 0;
+  background: transparent;
+}
+
+.monitor-overview .monitor-node-head {
+  padding: 14px 18px;
+}
+
+.monitor-overview .monitor-range {
+  padding: 8px 12px;
+}
+
+.monitor-overview .monitor-note {
+  color: var(--muted-foreground);
+}
+
+/* Keep expensive historical charts visually stable while live WS telemetry updates. */
+.monitor-chart-card {
+  contain: layout style;
+}
+
+/* Large surfaces share the restrained chart-card finish. Individual node rows
+   and range chips keep their own shapes. */
+.server-summary-card,
+.server-node-list > .server-card,
+.server-empty-state,
+.node-picker,
+.monitor-overview,
+.monitor-chart-card,
+.system-detail-card,
+.latency-float-card,
+.server-search input,
+.server-sort-select,
+.server-sort-direction,
+.server-status-filters,
+.node-picker > input {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background-color: var(--card);
+  background-image: linear-gradient(180deg, transparent, color-mix(in oklab, var(--foreground) 3%, transparent));
+  box-shadow: 0 1px 2px rgb(0 0 0 / .035), 0 12px 28px -25px rgb(0 0 0 / .22);
+}
+
+.dark .server-summary-card,
+.dark .server-node-list > .server-card,
+.dark .server-empty-state,
+.dark .node-picker,
+.dark .monitor-overview,
+.dark .monitor-chart-card,
+.dark .system-detail-card,
+.dark .latency-float-card,
+.dark .server-search input,
+.dark .server-sort-select,
+.dark .server-sort-direction,
+.dark .server-status-filters,
+.dark .node-picker > input {
+  background-image: linear-gradient(180deg, transparent, color-mix(in oklab, var(--foreground) 3%, transparent));
+  box-shadow: 0 1px 2px rgb(0 0 0 / .12), 0 14px 30px -25px rgb(0 0 0 / .55);
+}
+
+.monitor-node-link {
+  border-color: var(--border);
+  background-color: var(--card);
+  background-image: linear-gradient(180deg, transparent, color-mix(in oklab, var(--foreground) 3%, transparent));
+  box-shadow: 0 1px 2px rgb(0 0 0 / .035), 0 12px 28px -25px rgb(0 0 0 / .22);
+}
+
+.dark .monitor-node-link {
+  border-color: var(--border);
+  background-color: var(--card);
+  background-image: linear-gradient(180deg, transparent, color-mix(in oklab, var(--foreground) 3%, transparent));
+  box-shadow: 0 1px 2px rgb(0 0 0 / .12), 0 14px 30px -25px rgb(0 0 0 / .55);
+}
+
+/* On phones the node picker becomes a light horizontal rail instead of a tall
+   card list. The detail content starts almost immediately, like ServerStatus's
+   full-width mobile drawer. */
+@media (max-width: 760px) {
+  .monitor-shell {
+    display: block;
+  }
+
+  .node-picker {
+    position: static !important;
+    max-height: none !important;
+    margin-bottom: 12px;
+    padding: 7px !important;
+    overflow: hidden;
+    border-radius: var(--radius) !important;
+  }
+
+  .node-picker > input {
+    display: none;
+  }
+
+  .node-picker > nav {
+    display: flex;
+    min-height: 0;
+    gap: 6px;
+    margin-top: 0 !important;
+    padding: 0 1px 1px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .node-picker > nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .monitor-node-link {
+    flex: 0 0 auto;
+    width: 100%;
+    min-width: 0;
+    gap: 7px;
+    padding: 7px 10px !important;
+  }
+
+  .monitor-node-link span.min-w-0 {
+    max-width: 132px;
+  }
+
+  .monitor-overview {
+    border-radius: var(--radius) !important;
+  }
+
+  .monitor-overview .monitor-node-head {
+    padding: 13px 14px;
+  }
+
+  .monitor-overview .monitor-range {
+    flex-wrap: wrap;
+    gap: 5px;
+    padding: 7px;
+    overflow-x: visible;
+    scrollbar-width: none;
+  }
+
+  .monitor-overview .monitor-range::-webkit-scrollbar {
+    display: none;
+  }
+
+  .monitor-range-tab {
+    flex: 0 0 auto;
+  }
+
+  .server-detail-backdrop {
+    background: rgb(0 0 0 / .20);
+  }
+
+  .server-detail-drawer {
+    width: 100vw;
+    max-width: none;
+    border-left: 0;
+    box-shadow: none;
+  }
+
+  .server-detail-head {
+    padding-top: calc(.75rem + env(safe-area-inset-top));
+  }
+
+  .server-detail-scroll {
+    padding-bottom: calc(.75rem + env(safe-area-inset-bottom));
+  }
+
+  .detail-group {
+    padding: 11px 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .server-detail-backdrop,
+  .server-detail-drawer {
+    animation: none;
+  }
+}
+
+
+/* Network chart uses Once UI neutral hierarchy rather than an accent color. */
+:root {
+  --network-rx: #8a8a8a;
+  --network-tx: #2f2f2f;
+}
+
+.dark {
+  --network-rx: #8f8f8f;
+  --network-tx: #e7e7e7;
+}
+
+
+@media (max-width: 760px) {
+  .server-summary-card .summary-metrics .metric-tile {
+    min-height: 44px;
+  }
+}
+
+/* List controls and metrics share one column layout, while small screens retain
+   readable cards. The list itself never mounts the detail charts. */
+.server-search { flex-basis: 220px; }
+.server-search input,
+.server-sort-select,
+.server-status-filters { border-radius: 999px; }
+/* Group filters as separate blocks (nazhua style), not a segmented pill bar. */
+.server-status-filters, .dark .server-status-filters { border: 0; border-radius: 0; background: transparent; box-shadow: none; padding: 0; gap: 10px; }
+.server-sort-direction { border-radius: 50%; }
+.server-sort-select { color: var(--foreground); }
+.server-sort-select option { color: var(--foreground); background: var(--card); }
+.server-filter-button,
+.server-sort-direction,
+.server-column-sort,
+.server-clear-filters { transition: background .15s ease, color .15s ease; }
+.server-filter-button { color: var(--muted-foreground); border-radius: 10px; border: 1px solid var(--border); background-color: var(--card); height: 36px; padding: 0 16px; font-size: 13px; font-weight: 600; }
+.server-filter-button[aria-pressed="true"] { color: var(--foreground); background: var(--tag-active-bg); box-shadow: var(--tag-active-shadow); }
+.server-filter-button, .server-filter-button[aria-pressed="true"] { background-image: radial-gradient(transparent 1px, var(--dot-color) 1px); background-size: 3px 3px; }
+.server-monitor-link { color: var(--foreground); border: 1px solid var(--border); background: var(--tag-active-bg); box-shadow: var(--tag-active-shadow); }
+.server-clear-filters { color: var(--solid-brand); }
+.server-filter-button:not([aria-pressed="true"]):hover,
+.server-sort-direction:hover { background: var(--secondary); color: var(--foreground); }
+.server-search input:focus-visible,
+.server-list-controls button:focus-visible,
+.server-sort-select:focus-visible,
+.server-detail-drawer a:focus-visible,
+.server-detail-drawer button:focus-visible,
+.server-empty-state button:focus-visible {
+  outline: 2px solid var(--foreground);
+  outline-offset: 3px;
+}
+.server-search input::-webkit-search-cancel-button { display: none; }
+.server-monitor-link:hover { opacity: .84; }
+.server-detail-close:focus-visible { outline-offset: 1px !important; }
+
+@media (min-width: 768px) {
+  .monitor-chart-card h4 { font-size: 13px; }
+}
+
+@media (max-width: 767px) {
+  .server-toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .server-search { grid-column: 1; grid-row: 1; }
+  .server-search input { font-size: 12px; }
+  .server-sort-controls { grid-column: 2; grid-row: 1; }
+  .server-sort-select { max-width: 105px; padding-inline: 7px; }
+  .server-status-filters { grid-column: 1 / -1; display: flex; width: 100%; max-width: 100%; gap: 6px; }
+  .server-filter-button { flex: 1 1 0; min-width: 0; height: 20px; padding: 0 6px; gap: 4px; font-size: 11.5px; line-height: 1; white-space: nowrap; }
+  .server-filter-button .tnum { font-size: 9px; }
+}
+
+@media (max-width: 374px) {
+  .server-status-filters { gap: 4px; }
+  .server-filter-button { height: 20px; padding: 0 4px; gap: 3px; font-size: 11px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .server-filter-button,
+  .server-sort-direction,
+  .server-clear-filters { transition: none; }
+}
+
+/* One continuous block like the panel table — the list carries the border
+   and radius; rows are flat, separated by hairlines, no pill outlines. */
+.server-node-list { container-type: inline-size; border: 1px solid var(--border); border-radius: 14px; overflow: clip; background: var(--card); color: color-mix(in oklab, var(--foreground) 84%, transparent); padding-bottom: 10px; }
+.server-node-list > .server-card { border: 0; border-radius: 0; }
+.dark .server-node-list { background: rgb(4 7 14 / .93); }
+.dark .server-node-list > .server-card { background: transparent; }
+.server-node-list > .server-card:last-child { border-bottom: 0; }
+.server-node-list > .server-empty-state { border: 0; border-radius: 0; }
+.server-node-list > .compact-card-head { padding-top: 10px; }
+/* Zebra rows: alternate rows get a faint tint so the list reads in bands
+   now that the hairline separators are gone. */
+/* Nazhua-style dot-matrix texture (3px dot grid, as in nazhua's dot-dot-box)
+   layered over the panel, its head and every row. */
+/* Nazhua's own recipe (dot-dot-box): a black dot veil, radial-gradient
+   (transparent 1px, #0009 1px) at 3px pitch, over a translucent panel so the
+   wallpaper ghosts through and the veil grains it. */
+.server-node-list { background-color: rgb(255 255 255 / .8); }
+.server-node-list, .server-node-list > .compact-card-head, .server-node-list > article.server-card, .dark .server-node-list > article.server-card { background-image: radial-gradient(transparent 1px, var(--dot-color) 1px); background-size: 3px 3px; }
+@media (max-width: 767px) {
+  .server-node-list > .compact-card-head { padding-top: 6px; }
+}
+
+.compact-card-grid { display: grid; grid-template-columns: 28px minmax(100px, 1fr) 42px minmax(120px, 1.1fr) minmax(130px, 1fr) repeat(3, minmax(75px, .65fr)); align-items: center; gap: 8px; }
+.compact-card-head { padding: 0 14px 6px; color: var(--muted-foreground); font-size: 12px; font-weight: 800; -webkit-text-stroke: .35px currentColor; white-space: nowrap; }
+.compact-card-head > :nth-child(2) { padding-left: 7px; }
+.compact-card-head > :nth-child(n+5) { justify-content: center; text-align: center; }
+
+.compact-sort { display: inline-flex; align-items: center; gap: 3px; min-width: 0; text-align: left; }
+.compact-sort svg { width: 12px; height: 12px; flex: none; }
+.compact-sort:focus-visible { outline: 2px solid var(--foreground); outline-offset: 2px; }
+.server-card .compact-card-hit { width: 100%; min-height: 46px; padding: 7px 14px; color: var(--foreground); text-align: left; font-size: 13px; }
+.compact-card-hit:focus-visible { outline: 2px solid var(--foreground); outline-offset: -2px; }
+.compact-card-dot { width: 13px; height: 13px; justify-self: center; }
+.compact-card-badge { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; justify-self: center; font-size: 10px; line-height: 1; }
+.compact-card-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; font-weight: 600; line-height: 1.15; }
+.compact-card-region { display: flex; min-width: 0; align-items: center; overflow: hidden; white-space: nowrap; }
+.compact-card-status { display: inline-flex; align-items: center; gap: 3px; }
+.compact-card-flag-m { display: none; }
+.compact-card-system-head { display: none; text-align: center; }
+.compact-card-speed { overflow: hidden; white-space: nowrap; text-align: center; }
+.compact-card-speed-head { justify-content: center; text-align: center; }
+.compact-card-meter {
+  position: relative;
+  z-index: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  overflow: hidden;
+  isolation: isolate;
+  min-height: 24px;
+  padding: 0 2px;
+  font-size: 13px;
+  letter-spacing: -0.02em;
+  text-align: center;
+  white-space: nowrap;
+}
+.compact-card-meter::before {
+  position: static;
+  z-index: 0;
+  flex: none;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: conic-gradient(var(--meter-fill) 0 var(--fill), color-mix(in oklab, currentColor 16%, transparent) var(--fill) 100%);
+  content: "";
+}
+.compact-card-meter-label,
+.compact-card-meter-label-filled {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.compact-card-meter-label { position: static; display: block; overflow: hidden; }
+.compact-card-meter-label-filled { display: none; }
+.dark .compact-card-meter::before {
+  background: conic-gradient(var(--meter-fill) 0 var(--fill), color-mix(in oklab, currentColor 16%, transparent) var(--fill) 100%);
+}
+
+/* 永久 expiry keeps the pill but drops the pie. */
+.compact-card-meter.compact-card-expiry-flat::before { display: none; }
+.compact-card-os { display: none; align-items: center; justify-content: center; gap: 5px; overflow: hidden; white-space: nowrap; }
+.compact-card-os > span { overflow: hidden; text-overflow: ellipsis; }
+.monitor-status-dot { width: 13px; height: 13px; }
+
+@media (min-width: 1000px) {
+  .compact-card-grid { grid-template-columns: 28px minmax(135px, 1.1fr) minmax(52px, .45fr) minmax(105px, .85fr) minmax(130px, 1fr) repeat(3, minmax(75px, .6fr)); }
+  .compact-card-system-head { display: block; }
+  .compact-card-os { display: inline-flex; }
+}
+
+@media (min-width: 1100px) {
+  .compact-card-grid { grid-template-columns: 28px minmax(175px, .9fr) 72px minmax(130px, .7fr) minmax(145px, 1fr) repeat(3, minmax(85px, .8fr)); }
+}
+
+/* PC-width list columns 在线时间 / 有效期： hidden on narrow screens like the
+   系统 column, shown from 768px up (landscape phones and desktop-mode
+   viewports live between 768 and 1024). The name track is minmax(0, 1fr) so
+   the fixed tracks plus gaps stay under the container width at every tier —
+   with hard minimums everywhere, the two new tracks overflowed and were
+   clipped away at exactly the widths they were meant for. */
+.compact-card-uptime { display: none; overflow: hidden; text-align: center; white-space: nowrap; }
+.compact-card-price { display: none; overflow: hidden; text-align: left; white-space: nowrap; }
+.compact-card-head .compact-card-price { text-align: left; }
+/* Paired values (speed up/down, traffic in/out): fixed-width halves around
+   a centre pipe so the "|" lines up vertically across every row. */
+.compact-card-pair { display: inline-grid; grid-template-columns: var(--pair-l, 48px) 9px var(--pair-r, 48px); align-items: baseline; }
+.compact-card-pair .pair-l { text-align: right; overflow: hidden; white-space: nowrap; }
+.compact-card-pair .pair-r { text-align: left; overflow: hidden; white-space: nowrap; }
+.compact-card-pair .pair-sep { text-align: center; opacity: .55; }
+.compact-card-traffic .compact-card-pair { --pair-l: 44px; --pair-r: 44px; }
+/* Speed pair arrows live in the header (↓|↑); the data rows show bare numbers. */
+.pair-arrow { display: none; }
+.compact-card-expiry { overflow: hidden; text-align: center; white-space: nowrap; }
+.compact-card-speed-lines { display: inline-flex; flex-direction: column; align-items: flex-start; line-height: 1.2; }
+@media (min-width: 768px) {
+  .server-card .compact-card-hit { min-height: 30px; padding-top: 2px; padding-bottom: 2px; }
+  .compact-card-speed { text-align: center; }
+  .compact-card-head > :nth-child(n + 5) { justify-content: flex-start; text-align: left; }
+  .compact-card-head > :nth-child(6), .compact-card-head > :nth-child(7), .compact-card-head > :nth-child(8), .compact-card-head > :nth-child(9), .compact-card-head > :nth-child(10) { justify-content: center; text-align: center; }
+  .compact-card-uptime { text-align: left; }
+  .compact-card-expiry { justify-content: flex-end; text-align: right; }
+  .compact-card-head .compact-card-expiry { text-align: right; }
+  .compact-card-grid { grid-template-columns: 18px minmax(34px, 130px) 46px minmax(104px, .9fr) minmax(68px, 1fr) minmax(58px, .7fr) minmax(64px, .7fr) repeat(3, minmax(60px, .7fr)) minmax(58px, .7fr) minmax(76px, .7fr); gap: 8px; }
+  .compact-card-uptime, .compact-card-expiry, .compact-card-price { display: block; }
+  .compact-card-uptime { text-align: left; }
+  .compact-card-system-head { display: block; text-align: left; }
+  .compact-card-os { display: inline-flex; justify-content: flex-start; }
+  .compact-card-traffic::before { display: none; }
+}
+@media (min-width: 1000px) {
+  .compact-card-grid { grid-template-columns: 24px 88px 48px 112px 94px 102px 100px 70px 70px 70px 86px 54px; gap: 8px; justify-content: space-between; }
+}
+@media (min-width: 768px) and (max-width: 999px) {
+  /* Landscape phones / small windows: the elastic tracks used to shrink
+     below the fixed pair widths, clipping traffic mid-number. This band
+     budgets every track against the real string widths instead. */
+  .compact-card-grid { grid-template-columns: 18px minmax(34px, 1fr) 44px minmax(88px, .9fr) 56px 92px 84px repeat(3, minmax(56px, .6fr)) 76px 52px; gap: 6px; }
+  .compact-card-head > :first-child { visibility: hidden; }
+  .server-card .compact-card-hit, .compact-card-head { font-size: 11.5px; }
+  .compact-card-pair { --pair-l: 42px; --pair-r: 42px; grid-template-columns: var(--pair-l) 7px var(--pair-r); }
+  .compact-card-traffic .compact-card-pair { --pair-l: 38px; --pair-r: 38px; }
+}
+@media (min-width: 1100px) {
+  .compact-card-grid { grid-template-columns: 28px 110px 50px 118px 100px 108px 104px 74px 74px 74px 90px 58px; gap: 10px; justify-content: space-between; }
+}
+
+@media (max-width: 767px) {
+  .monitor-status-dot { width: 10px; height: 10px; }
+  .monitor-head-os { display: none; }
+  .compact-card-grid { grid-template-columns: 28px minmax(32px, 1fr) 76px repeat(3, clamp(46px, calc((100cqw - 150px) / 5), 54px)) minmax(30px, 56px); gap: 3px; min-width: 0; }
+  .compact-card-pair { --pair-l: 31px; --pair-r: 31px; grid-template-columns: var(--pair-l) 7px var(--pair-r); }
+  .compact-card-traffic, .compact-card-traffic-head { display: none; }
+  .compact-card-region { display: none; }
+  .compact-card-flag-m { display: inline-flex; }
+  .stat-bar-v190 .nz-divider { margin-inline: 6px; }
+  .latency-legend { gap: 4px; }
+  .monitor-chip { font-size: 9.5px; padding: 1px 4px; gap: 3px; }
+  .monitor-chip svg { width: 7px; height: 4px; }
+  .monitor-chip .tabular-nums { font-size: 8.5px; }
+  .latency-float-card { padding: 10px; }
+  .latency-float-card .recharts-cartesian-axis-tick text,
+  .monitor-chart-card .recharts-cartesian-axis-tick text { font-size: 10px; }
+  .compact-card-head { padding: 0 4px 3px; color: var(--foreground); font-size: 10px; }
+  .compact-card-head > :first-child { visibility: hidden; }
+  .compact-card-head > :nth-child(2) { padding-left: 3px; }
+  .compact-sort svg { width: 9px; height: 9px; }
+  .server-card .compact-card-hit { min-height: 28px; padding: 3px 4px; font-size: 10px; }
+  .compact-card-dot { width: 10px; height: 10px; }
+  .compact-card-badge { font-size: 9px; }
+  .compact-card-name { font-size: 10.5px; font-weight: 600; line-height: 1.1; }
+  .compact-card-speed-head, .compact-card-speed { font-size: 10px; letter-spacing: -0.03em; }
+  .compact-card-traffic-head .compact-card-directions { display: none; }
+  .compact-card-meter { min-height: 18px; padding: 2px 1px; font-size: 10px; letter-spacing: -0.03em; gap: 3px; }
+  .compact-card-meter::before { width: 11px; height: 11px; }
+  .compact-card-expiry::before { display: none; }
+}
+
+@media (min-width: 431px) and (max-width: 767px) {
+  .compact-card-grid { grid-template-columns: 28px minmax(44px, .8fr) 78px repeat(3, minmax(52px, .7fr)) minmax(30px, 56px); gap: 4px; }
+}
+
+@media (max-width: 374px) {
+  .compact-card-grid { grid-template-columns: 28px minmax(28px, 1fr) 72px repeat(3, 46px) minmax(26px, 46px); gap: 1px; }
+  .compact-card-head { padding-inline: 4px; }
+  .compact-card-head > :first-child { font-size: 0; }
+  .server-card .compact-card-hit { padding-inline: 4px; }
+  .compact-card-speed { font-size: 8.1px; }
+  .compact-card-meter { font-size: 8.5px; }
+  .compact-card-meter:last-child { font-size: 7.7px; }
+}
+
+@media (max-width: 600px) {
+  .detail-head-os > span { display: none; }
+}
+
+/* v190 stat bar motion and colour logic, ported from nz-fx-v190.html and
+   scoped to the bar: shine-gradient text, threshold-coloured values, icon
+   breathing on v190's triggers, bouncing arrows, breathing slashes, aurora
+   dividers. */
+.stat-bar-v190 {
+  font-family: "PingFang SC", "Microsoft YaHei", "微软雅黑", sans-serif;
+  font-weight: 900;
+}
+.stat-bar-v190 .nz-shine-up, .stat-bar-v190 .nz-shine-down,
+.stat-bar-v190 .nz-shine-busy, .stat-bar-v190 .nz-shine-fast {
+  background-size: 200% 100%;
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent; -webkit-text-fill-color: transparent;
+  filter: drop-shadow(1px 0 0 #000) drop-shadow(-1px 0 0 #000) drop-shadow(0 1px 0 #000) drop-shadow(0 -1px 0 #000);
+  animation: nzShine 3s linear infinite;
+}
+.stat-bar-v190 .nz-shine-up { background-image: linear-gradient(110deg, #22d3ee 20%, #d8fbff 40%, #22d3ee 60%); }
+.stat-bar-v190 .nz-shine-down { background-image: linear-gradient(110deg, #fde047 20%, #fefce8 40%, #fde047 60%); }
+.stat-bar-v190 .nz-shine-busy { background-image: linear-gradient(110deg, #f0abfc 20%, #fdf4ff 40%, #f0abfc 60%); }
+.stat-bar-v190 .nz-shine-fast { background-image: linear-gradient(110deg, #a5b4fc 20%, #eef2ff 40%, #a5b4fc 60%); }
+/* The list mirrors the stat bar: the busiest/fastest rows' names carry
+   the same flowing gradients as the names up in the bar. */
+.server-node-list .nz-shine-busy, .server-node-list .nz-shine-fast {
+  background-size: 200% 100%;
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent; -webkit-text-fill-color: transparent;
+  animation: nzShine 3s linear infinite;
+}
+.server-node-list .nz-shine-busy { background-image: linear-gradient(110deg, #f0abfc 20%, #fdf4ff 40%, #f0abfc 60%); }
+.server-node-list .nz-shine-fast { background-image: linear-gradient(110deg, #a5b4fc 20%, #eef2ff 40%, #a5b4fc 60%); }
+@keyframes nzShine { to { background-position: -200% 0; } }
+
+.stat-bar-v190 .nz-bounce { display: inline-block; animation: nzBounce 1.2s ease-in-out infinite; }
+.stat-bar-v190 .nz-bounce.up { animation-delay: .6s; }
+@keyframes nzBounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+
+.stat-bar-v190 .nz-slash { display: inline-block; animation: nzSlashGlow 2.4s ease-in-out infinite; }
+.stat-bar-v190 .nz-slash-delay { animation-delay: 1.2s; }
+@keyframes nzSlashGlow { 0%, 100% { opacity: .3; } 50% { opacity: 1; } }
+
+.stat-bar-v190 .nz-pulse-icon { animation: nzIconPulse 2s ease-in-out infinite; }
+@keyframes nzIconPulse { 0%, 100% { transform: scale(1); filter: drop-shadow(0 0 2px rgba(96,165,250,.5)); } 50% { transform: scale(1.18); filter: drop-shadow(0 0 6px rgba(96,165,250,.9)); } }
+.stat-bar-v190 .nz-pulse-offline { display: inline-block; animation: nzOfflinePulse 1.6s ease-in-out infinite; }
+@keyframes nzOfflinePulse { 0%, 100% { transform: scale(1); filter: drop-shadow(0 0 2px rgba(251,113,133,.6)); } 50% { transform: scale(1.22); filter: drop-shadow(0 0 6px rgba(251,113,133,.95)); } }
+.stat-bar-v190 .nz-pulse-fire { display: inline-block; transform-origin: center; animation: nzFirePulse 1.6s ease-in-out infinite; }
+@keyframes nzFirePulse { 0%, 100% { transform: scale(1); filter: drop-shadow(0 0 2px rgba(251,146,60,.6)); } 50% { transform: scale(1.25); filter: drop-shadow(0 0 6px rgba(251,146,60,.95)); } }
+.stat-bar-v190 .nz-pulse-fast { display: inline-block; transform-origin: center; animation: nzFastPulse 2s ease-in-out infinite; }
+@keyframes nzFastPulse { 0%, 100% { transform: scale(1); filter: drop-shadow(0 0 2px rgba(250,204,21,.6)); } 50% { transform: scale(1.2); filter: drop-shadow(0 0 6px rgba(253,224,71,.95)); } }
+
+.stat-bar-v190 .nz-divider {
+  width: 1px; height: 16px; border-radius: 2px; filter: blur(.4px);
+  background: linear-gradient(to bottom, #4ade80, #22d3ee, #a78bfa, #4ade80);
+  background-size: 100% 300%;
+  animation: nzDividerAurora 3s linear infinite;
+}
+@keyframes nzDividerAurora { to { background-position: 0 -300%; } }
+
+.brand-rainbow {
+  background-image: linear-gradient(90deg, #f87171, #fb923c, #facc15, #4ade80, #38bdf8, #818cf8, #e879f9, #f87171);
+  background-size: 200% 100%;
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent; -webkit-text-fill-color: transparent;
+  animation: brandRainbow 3s linear infinite;
+}
+@keyframes brandRainbow { to { background-position: -200% 0; } }
+
+/* v190 visitor-IP card: fixed bottom-left card on desktop, centred pill
+   near the bottom on mobile. */
+.nz-ip-card {
+  position: fixed;
+  bottom: 70px;
+  left: 12px;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 13px;
+  background: rgba(15,23,42,.78);
+  border: 1px solid rgba(100,116,139,.45);
+  border-radius: 9px;
+  font-size: 12.5px;
+  color: #e2e8f0;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  user-select: none;
+  white-space: nowrap;
+  box-shadow: 0 2px 12px rgba(0,0,0,.35);
+  text-shadow: 1px 0 0 #000, -1px 0 0 #000, 0 1px 0 #000, 0 -1px 0 #000;
+}
+.nz-ip-card .nz-ip-flag { font-size: 15px; }
+.nz-ip-card .nz-ip-flag-img { width: 24px; height: 17px; border-radius: 3px; object-fit: cover; display: block; }
+.nz-ip-card .nz-ip-addr { color: #93c5fd; font-weight: 700; font-family: Consolas, monospace; flex: none; }
+.nz-ip-card .nz-ip-sep { color: #64748b; }
+.nz-ip-card .nz-ip-isp { color: #cbd5e1; flex: none; }
+.nz-ip-card .nz-ip-close { margin-left: 2px; cursor: pointer; color: #64748b; font-size: 15px; line-height: 1; padding: 0 2px; }
+.nz-ip-card .nz-ip-close:hover { color: #f87171; }
+@media (max-width: 767px) {
+  .nz-ip-card {
+    bottom: 44px;
+    left: 0;
+    right: 0;
+    margin-inline: auto;
+    transform: none;
+    border-radius: 999px;
+    padding: 9px 18px;
+    font-size: 13px;
+    width: fit-content;
+    max-width: 94vw;
+    box-sizing: border-box;
+  }
+  .nz-ip-card .nz-ip-flag, .nz-ip-card .nz-ip-sep, .nz-ip-card .nz-ip-close { flex: none; }
+  .nz-ip-card .nz-ip-isp { flex: 0 10 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .nz-ip-card .nz-ip-addr { flex: none; white-space: nowrap; }
+  .nz-ip-card .nz-ip-addr.nz-ip-v6 { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+}
+
+@media (max-width: 480px) {
+  .nz-ip-card { font-size: 12px; padding: 7px 13px; gap: 5px; }
+  .nz-ip-card .nz-ip-flag-img { width: 21px; height: 15px; }
+}
+
+/* Dotted world map below the server list, ported from the v190 theme:
+   transparent background, canvas land dots + animated marker layer,
+   HTML tags for the busiest/fastest/offline markers, click tooltip. */
+.dot-map {
+  position: relative;
+  width: 100%;
+  margin: 6px auto 0;
+  aspect-ratio: 330 / 133;
+  background: transparent;
+}
+.dot-map canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+}
+.dot-map-tags {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  overflow: hidden;
+}
+.nz-map-tag {
+  position: absolute;
+  transform: translate(-50%, -150%);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(0,0,0,.62);
+  padding: 2px 8px;
+  border-radius: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  line-height: 1.5;
+  color: #e2e8f0;
+}
+.nz-map-tag-name.tag-busy, .nz-map-tag-name.tag-fast {
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  animation: nzShine 3s linear infinite;
+}
+.nz-map-tag-name.tag-busy { background-image: linear-gradient(110deg, #f0abfc 20%, #fdf4ff 40%, #f0abfc 60%); }
+.nz-map-tag-name.tag-fast { background-image: linear-gradient(110deg, #a5b4fc 20%, #eef2ff 40%, #a5b4fc 60%); }
+.dot-map-tip {
+  position: absolute;
+  z-index: 5;
+  transform: translate(-50%, -150%);
+  pointer-events: none;
+  background: rgba(15,23,42,.92);
+  border: 1px solid rgba(100,116,139,.5);
+  color: #e2e8f0;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+/* Light mode: no dot matrix anywhere — body, header, filter buttons,
+   the node list, and the backdrop's top dot grid all go flat. */
+:root:not(.dark) body,
+:root:not(.dark) .once-header,
+:root:not(.dark) .server-filter-button,
+:root:not(.dark) .server-filter-button[aria-pressed="true"],
+:root:not(.dark) .server-node-list,
+:root:not(.dark) .server-node-list > .compact-card-head,
+:root:not(.dark) .server-node-list > article.server-card {
+  background-image: none;
+}
+:root:not(.dark) .once-backdrop::before { display: none; }
+
+/* ============================================================
+   Ported from the live build (2026-10-24): prism-mobile-fix-v34.css,
+   the cumulative on-server layout-fix stylesheet (v2-v34), appended
+   verbatim so a source rebuild keeps the live appearance. It used to
+   load as a separate file after the bundled CSS; end-of-file here is
+   the same cascade position.
+   ============================================================ */
+/* Prism layout fixes v2 (deployed 2026-10-23)
+   1) Mobile detail card: keep the 2x2 grid, every row on ONE line,
+      uniform row rhythm, right sections offset from the center divider.
+   2) PC detail card: larger font (user request).
+   3) PC node table (>=1000px): compact content-sized columns, uniform
+      gaps, centered block instead of space-between spreading.
+   Mobile rules are gated by viewport <= 700px AND container <= 499px. */
+
+/* ================= Mobile detail card ================= */
+@media (max-width: 700px) {
+
+/* ---------- Tier A: container 375-499px ---------- */
+@container (width>=375px) and (width<=499px) {
+  .system-detail-card { padding: 8px 5px !important; }
+  .system-detail-card .detail-group { padding: 7px 2px; font-size: 9px; }
+  .system-detail-card .detail-group + .detail-group { padding-left: 12px; }
+  .system-detail-card .detail-group [data-line-label] > span:first-child {
+    font-size: 8.5px !important; letter-spacing: -.3px;
+  }
+  /* uniform row rhythm: fixed row height + fixed gap, no per-row margins */
+  .system-detail-card .detail-group .space-y-1 { row-gap: 3px; }
+  .system-detail-card .detail-group .space-y-1 > div {
+    min-height: 20px; align-items: center; margin-block-end: 0 !important;
+  }
+  /* label columns tuned per section (values get the rest of the half-card) */
+  .system-detail-card .detail-group .space-y-1 > div {
+    grid-template-columns: 56px minmax(0, 1fr) !important; gap: 4px !important;
+  }
+  .system-detail-card > .detail-groups:first-of-type > .detail-group:first-child .space-y-1 > div {
+    grid-template-columns: 52px minmax(0, 1fr) !important;
+  }
+  .system-detail-card > .detail-groups:first-of-type > .detail-group:last-child .space-y-1 > div {
+    grid-template-columns: 30px minmax(0, 1fr) !important;
+  }
+  .system-detail-card > .detail-groups:last-of-type > .detail-group:last-child .space-y-1 > div {
+    grid-template-columns: 52px minmax(0, 1fr) !important;
+  }
+  /* undo line-wide stacking: stay in place, single line */
+  .system-detail-card .detail-group .space-y-1 > div.line-wide { order: 0; margin-top: 0; }
+  .system-detail-card .detail-group [data-line-label] > .tnum {
+    white-space: nowrap !important; overflow: hidden; text-overflow: ellipsis;
+    letter-spacing: -.4px; transform: scaleX(.95); transform-origin: left center;
+  }
+  .system-detail-card .detail-group .space-y-1 > div.line-wide > .tnum {
+    white-space: nowrap !important; line-height: inherit;
+  }
+  /* shrink the fixed-width rate slots inside the Speed row */
+  .system-detail-card [data-line-label] .tnum > span { --slot: 8.8ch !important; }
+}
+
+/* ---------- Tier B: container 340-374px (extra squeeze) ---------- */
+@container (width>=340px) and (width<=374px) {
+  .system-detail-card { padding: 8px 5px !important; }
+  .system-detail-card .detail-group { padding: 7px 2px; font-size: 8.5px; }
+  .system-detail-card .detail-group + .detail-group { padding-left: 12px; }
+  .system-detail-card .detail-group [data-line-label] > span:first-child {
+    font-size: 8px !important; letter-spacing: -.3px;
+  }
+  .system-detail-card .detail-group .space-y-1 { row-gap: 3px; }
+  .system-detail-card .detail-group .space-y-1 > div {
+    min-height: 20px; align-items: center; margin-block-end: 0 !important;
+  }
+  .system-detail-card .detail-group .space-y-1 > div {
+    grid-template-columns: 54px minmax(0, 1fr) !important; gap: 4px !important;
+  }
+  .system-detail-card > .detail-groups:first-of-type > .detail-group:first-child .space-y-1 > div {
+    grid-template-columns: 50px minmax(0, 1fr) !important;
+  }
+  .system-detail-card > .detail-groups:first-of-type > .detail-group:last-child .space-y-1 > div {
+    grid-template-columns: 28px minmax(0, 1fr) !important;
+  }
+  .system-detail-card > .detail-groups:last-of-type > .detail-group:last-child .space-y-1 > div {
+    grid-template-columns: 50px minmax(0, 1fr) !important;
+  }
+  .system-detail-card .detail-group .space-y-1 > div.line-wide { order: 0; margin-top: 0; }
+  .system-detail-card .detail-group [data-line-label] > .tnum {
+    white-space: nowrap !important; overflow: hidden; text-overflow: ellipsis;
+    letter-spacing: -.5px; transform: scaleX(.92); transform-origin: left center;
+  }
+  .system-detail-card .detail-group .space-y-1 > div.line-wide > .tnum {
+    white-space: nowrap !important; line-height: inherit;
+  }
+  .system-detail-card [data-line-label] .tnum > span { --slot: 8.4ch !important; }
+}
+
+/* ---------- Tier C: container <= 339px (single column in the theme; just un-stack rows) ---------- */
+@container (width<=339px) {
+  .system-detail-card .detail-group .space-y-1 > div.line-wide { order: 0; margin-top: 0; }
+  .system-detail-card .detail-group [data-line-label] > .tnum { overflow: hidden; text-overflow: ellipsis; }
+  .system-detail-card .detail-group .space-y-1 > div.line-wide > .tnum { white-space: nowrap !important; }
+}
+}
+
+/* ================= PC detail card: larger font ================= */
+@container (width>=500px) and (width<=899px) {
+  .system-detail-card .detail-group { font-size: 11.5px; }
+  .system-detail-card .detail-group h4 { font-size: 11px; }
+  .system-detail-card .detail-group .space-y-1 > div {
+    grid-template-columns: 7.2em minmax(0, 1fr);
+  }
+}
+@container (width>=900px) {
+  .system-detail-card .detail-group { font-size: 13px; }
+  .system-detail-card .detail-group h4 { font-size: 12px; }
+}
+
+/* ================= PC node table: compact + uniform ================= */
+@media (width>=1000px) and (width<=1299px) {
+  .compact-card-grid {
+    grid-template-columns: 22px 84px 48px 110px 72px 104px 104px 68px 68px 68px 88px 50px;
+    gap: 8px; justify-content: start; padding-inline: 8px !important;
+  }
+}
+@media (width>=1300px) {
+  .compact-card-grid {
+    grid-template-columns: 24px 100px 54px 124px 82px 124px 124px 78px 78px 78px 100px 56px;
+    gap: 16px; justify-content: start;
+    padding-inline: max(8px, calc((100% - 1198px) / 2)) !important;
+  }
+}
+
+/* Nested value spans (Speed row numbers): never clip, or their text baseline
+   lifts and the down/up arrows no longer share a line with the numbers. */
+.system-detail-card [data-line-label] > .tnum .tnum { overflow: visible; text-overflow: clip; }
+
+/* PC table header: align titles with the data cells below them
+   (System/Uptime data are centered; Speed/Traffic/CPU/Memory/Disk centered;
+   Name/Region/Price left; Expiry right — last three already match in the theme). */
+@media (width>=1000px) {
+  .compact-card-head > :nth-child(4),
+  .compact-card-head > :nth-child(5),
+  .compact-card-head > :nth-child(6),
+  .compact-card-head > :nth-child(7),
+  .compact-card-head > :nth-child(8),
+  .compact-card-head > :nth-child(9),
+  .compact-card-head > :nth-child(10) { text-align: center; justify-content: center; }
+}
+
+/* Filter buttons: remove the dot-matrix texture (user request) */
+.server-filter-button { background-image: none !important; }
+
+/* ===== v6: header/data alignment hardening + panel tightening ===== */
+@media (width>=1000px) {
+  /* Remove the "Status" header label so Name lines up with the names below
+     (the status dots themselves stay). */
+  .compact-card-head > :first-child { visibility: hidden; }
+  .compact-card-head > :nth-child(2) { padding-left: 0; }
+  /* Center the data cells of the centered columns too, so header title and
+     data share the exact same center (System / Uptime were the visible ones). */
+  .server-card .compact-card-hit > :nth-child(4),
+  .server-card .compact-card-hit > :nth-child(5),
+  .server-card .compact-card-hit > :nth-child(6),
+  .server-card .compact-card-hit > :nth-child(7),
+  .server-card .compact-card-hit > :nth-child(8),
+  .server-card .compact-card-hit > :nth-child(9),
+  .server-card .compact-card-hit > :nth-child(10) {
+    text-align: center; justify-content: center;
+  }
+}
+@media (width>=1300px) {
+  /* Tighten the dotted panel around the table: cap the list width and
+     reduce the empty side margins (uniform 20px column gaps kept). */
+  .server-node-list { max-width: 1290px; margin-inline: auto; }
+  .compact-card-grid {
+    gap: 20px;
+    padding-inline: max(8px, calc((100% - 1242px) / 2)) !important;
+  }
+}
+
+/* ===== v7: tighten the Price -> Expiry spacing (fig.2 feedback) ===== */
+@media (width>=1300px) {
+  .compact-card-grid {
+    grid-template-columns: 24px 100px 54px 124px 82px 124px 124px 78px 78px 78px 84px 50px;
+    gap: 18px;
+    padding-inline: max(8px, calc((100% - 1198px) / 2)) !important;
+  }
+}
+
+/* ===== v8: System / Uptime columns left-aligned (header + data) ===== */
+@media (width>=1000px) {
+  .compact-card-head > :nth-child(4),
+  .compact-card-head > :nth-child(5),
+  .server-card .compact-card-hit > :nth-child(4),
+  .server-card .compact-card-hit > :nth-child(5),
+  .compact-card-uptime {
+    text-align: left !important; justify-content: flex-start !important;
+  }
+}
+
+/* ===== v9: CPU / Memory / Disk columns left-aligned (header + data) ===== */
+@media (width>=1000px) {
+  .compact-card-head > :nth-child(8),
+  .compact-card-head > :nth-child(9),
+  .compact-card-head > :nth-child(10),
+  .server-card .compact-card-hit > :nth-child(8),
+  .server-card .compact-card-hit > :nth-child(9),
+  .server-card .compact-card-hit > :nth-child(10) {
+    text-align: left !important; justify-content: flex-start !important;
+  }
+}
+
+/* ===== v11: dotted panel hugs the table — fixed width, equal tight sides ===== */
+@media (width>=1300px) {
+  .server-node-list { width: 1250px; max-width: 100%; margin-inline: auto; }
+  .compact-card-grid { padding-inline: 26px !important; }
+}
+
+/* ===== v13: icons centered in their track (theme default) + margins made
+   exactly equal by compensating the dot's 5.5px centering inset in the
+   padding: left gap = 1 + 22.25 + 5.5 = 28.75px; right gap = 1 + 27.75 =
+   28.75px. Padding sum stays 50px, so the 1198px grid still fills the
+   1250px panel with zero slack. ===== */
+@media (width>=1300px) {
+  .compact-card-grid { padding-left: 22.25px !important; padding-right: 27.75px !important; }
+}
+
+/* ===== v14: header content groups pulled in to the panel's width (1250px
+   centered), so the title and the stats cluster never extend past the
+   dotted server panel below ===== */
+@media (width>=1300px) {
+  .once-header-inner { width: 1250px; max-width: 100%; }
+}
+
+/* ===== v15: filter button row pulled in to the panel's width (1250px
+   centered), same as the header — starts at the panel's left edge and
+   never extends past it ===== */
+@media (width>=1300px) {
+  .server-list-controls { width: 1250px; max-width: 100%; margin-inline: auto; }
+}
+
+/* ===== v16: Speed header arrows flipped to up|down — the column's data
+   is upload first, so the header label now matches it. ONLY the header
+   text changes (original text shrunk to zero, swapped text drawn by
+   ::after in the same 10px the theme sets on the speed head).
+   Data order and everything else untouched. ===== */
+.compact-card-speed-head .compact-card-directions { font-size: 0; }
+.compact-card-speed-head .compact-card-directions::after { content: " ↑|↓"; font-size: 10px; }
+
+/* ===== v18: hide the busiest/fastest name tags on the dot map only
+   (the black flag+name pills). List and header tags untouched. ===== */
+.nz-map-tag:has(.tag-busy), .nz-map-tag:has(.tag-fast) { display: none !important; }
+
+/* ===== v19: when a node is BOTH busiest and fastest, force its two badge
+   icons to stack vertically (up/down) in the status cell. ===== */
+.compact-card-badge { flex-direction: column !important; }
+
+/* ===== v20: homepage font size +2px, layout dimensions unchanged =====
+   Why the boxes can't move: data rows are pinned by min-height
+   (PC 30px / mobile 28px) and the +2px line boxes stay inside that
+   budget (worst-case normal line-height 1.4 still fits), so row heights
+   stay exactly 30/28px. Grid columns, gaps, paddings, button heights
+   and panel width are untouched.
+   Deliberately NOT enlarged (their boxes have no slack, growing them
+   would move the layout): table header row, top header bar, mobile
+   filter buttons (a wider button row would wrap on phones).
+   Mobile Speed is +1px only (10->11px): its pair slot is a fixed 31px,
+   12px would clip 5-char values like 98.5K. ===== */
+@media (width>=768px) {
+  .server-card .compact-card-hit { font-size: 15px; }
+  .compact-card-name { font-size: 16px; }
+  .compact-card-meter { font-size: 15px; }
+  .compact-card-badge { font-size: 11px; }
+  .server-filter-button { font-size: 15px; }
+}
+@media (width<=767px) {
+  .server-card .compact-card-hit { font-size: 12px; }
+  .compact-card-name { font-size: 12px; }
+  .compact-card-speed-head, .compact-card-speed { font-size: 11px; }
+  .compact-card-meter { font-size: 12px; }
+  .compact-card-badge { font-size: 10px; }
+}
+@media (width<=374px) {
+  .compact-card-speed { font-size: 10px; }
+  .compact-card-meter { font-size: 10px; }
+}
+
+/* ===== v22: macOS-style UI (dark mode), layout dimensions UNCHANGED =====
+   Replaces the v21 iOS section. Only colors, font family, corner radii,
+   shadows, gradients and backdrop blur change. No width, height,
+   min-height, padding, gap, margin or grid rule is touched, so every
+   box keeps its exact size and position.
+   Scoped to .dark (the mode the site runs in, and the default for new
+   visitors); light mode keeps the original theme. Wallpaper and brand
+   title untouched. SF font stack (real SF on Apple devices). ===== */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
+    "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+}
+.dark .stat-bar-v190 {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
+    "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+}
+/* macOS dark system colors */
+.dark { --meter-fill: #30D158; }
+/* macOS window material: more opaque than iOS sheets, window corner radius */
+.dark .server-node-list {
+  background-color: rgba(30, 30, 32, 0.85) !important;
+  background-image: none !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.40), 0 2px 8px rgba(0, 0, 0, 0.30) !important;
+}
+.dark .server-node-list > .compact-card-head,
+.dark .server-node-list > article.server-card { background-image: none !important; }
+/* Rows: subtle fill + hairline borders + macOS list hover */
+.dark .server-node-list > article.server-card {
+  background-color: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(255, 255, 255, 0.10) !important;
+  box-shadow: none !important;
+}
+.dark .server-node-list > article.server-card:hover { background-color: rgba(255, 255, 255, 0.08) !important; }
+/* Table header labels: macOS secondary label gray */
+.dark .compact-card-head { color: rgba(235, 235, 245, 0.6) !important; }
+/* Row text: macOS label white */
+.dark .server-card .compact-card-hit { color: #ffffff !important; }
+/* Status dots: macOS system green / red */
+.dark .status-dot-core { background: #30D158 !important; box-shadow: none !important; }
+.dark .status-dot[data-status="offline"] .status-dot-core { background: #FF453A !important; }
+/* macOS push buttons: subtle vertical gradient; active = blue gradient */
+.dark .server-filter-button {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04)) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  color: rgba(235, 235, 245, 0.85) !important;
+  border-radius: 8px !important;
+}
+.dark .server-filter-button[aria-pressed="true"] {
+  background: linear-gradient(180deg, #2E9BFF, #0A6CFF) !important;
+  border-color: transparent !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(10, 132, 255, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+}
+/* Search field: macOS rounded gray */
+.dark .server-search input {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  border-color: transparent !important;
+  color: #ffffff !important;
+}
+.dark .server-search input::placeholder { color: rgba(235, 235, 245, 0.6) !important; }
+/* Map tip: macOS popover */
+.dark .dot-map-tip {
+  background: rgba(30, 30, 32, 0.92) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  color: #ffffff !important;
+  border-radius: 10px !important;
+}
+/* Detail drawer: macOS side panel, deeper window shadow */
+.dark .server-detail-drawer {
+  background: rgba(30, 30, 32, 0.92) !important;
+  border-left-color: rgba(255, 255, 255, 0.15) !important;
+  box-shadow: -12px 0 32px rgba(0, 0, 0, 0.40) !important;
+}
+.dark .system-detail-card {
+  background-color: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  border-radius: 12px !important;
+}
+.dark .system-detail-card [data-line-label] > span:first-child { color: rgba(235, 235, 245, 0.6) !important; }
+/* macOS overlay scrollbars (no layout impact) */
+.dark ::-webkit-scrollbar { width: 8px; height: 8px; }
+.dark ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.25); border-radius: 4px; }
+.dark ::-webkit-scrollbar-track { background: transparent; }
+
+/* ===== v23: ALL macOS — site name, stat bar, detail page =====
+   Same rule as before: colors only, zero dimension changes. ===== */
+/* v24 revert (per user): site name rainbow and stat-bar colors restored
+   to the original theme. Busy/fast ROW names stay solid white. */
+.dark .server-card .nz-shine-busy, .dark .server-card .nz-shine-fast {
+  color: #fff !important; background: none !important;
+  -webkit-text-fill-color: #fff !important; filter: none !important; text-shadow: none !important;
+}
+/* Detail drawer close: macOS traffic-light red circle (button is already
+   a 36px circle, size unchanged) */
+.server-detail-close { background: #FF5F57 !important; color: rgba(0, 0, 0, 0.55) !important; }
+.server-detail-close:hover, .server-detail-close:focus-visible { background: #FF6B62 !important; color: rgba(0, 0, 0, 0.65) !important; }
+/* Drawer head: let the drawer frost show through */
+.dark .server-detail-head { background: transparent !important; }
+/* Drawer section titles + links: macOS label white / link blue */
+.dark .detail-group h4 { color: #ffffff !important; }
+.dark .server-detail-drawer a { color: #0A84FF !important; }
+/* Latency range tabs (1h/6h/12h/24h): macOS push-button treatment */
+.dark .monitor-range-tab {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  color: rgba(235, 235, 245, 0.85) !important;
+}
+.dark .monitor-range-tab[aria-pressed="true"] {
+  background: linear-gradient(180deg, #2E9BFF, #0A6CFF) !important;
+  border-color: transparent !important;
+  color: #ffffff !important;
+}
+/* Monitor chips + chart chrome: neutral macOS grays (series colors untouched) */
+.dark .monitor-chip {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  color: rgba(235, 235, 245, 0.85) !important;
+}
+.dark .recharts-cartesian-axis-tick text { fill: rgba(235, 235, 245, 0.6) !important; }
+.dark .recharts-cartesian-grid line { stroke: rgba(255, 255, 255, 0.10) !important; }
+.dark .recharts-default-tooltip, .dark .recharts-tooltip-content {
+  background: rgba(30, 30, 32, 0.92) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  border-radius: 10px !important;
+}
+/* Floating tool buttons (theme toggle, back to top): frosted macOS buttons */
+.dark .once-tool-button {
+  background: rgba(30, 30, 32, 0.70) !important;
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  color: #ffffff !important;
+}
+
+/* ===== v25: PC fonts -1px from v20 (slightly smaller), mobile untouched =====
+   PC: row 15->14, name 16->15, meter 15->14, badge 11->10, filter
+   buttons 15->14. Rows stay pinned by min-height 30px, so row heights
+   do not move; smaller text only adds slack, never wraps. ===== */
+@media (width>=768px) {
+  .server-card .compact-card-hit { font-size: 14px; }
+  .compact-card-name { font-size: 15px; }
+  .compact-card-meter { font-size: 14px; }
+  .compact-card-badge { font-size: 10px; }
+  .server-filter-button { font-size: 14px; }
+}
+
+/* ===== v26: PC fonts -1px again (same set as v25), mobile untouched =====
+   PC: row 14->13, name 15->14, meter 14->13, badge 10->9, filter
+   buttons 14->13. Rows still pinned by min-height 30px. ===== */
+@media (width>=768px) {
+  .server-card .compact-card-hit { font-size: 13px; }
+  .compact-card-name { font-size: 14px; }
+  .compact-card-meter { font-size: 13px; }
+  .compact-card-badge { font-size: 9px; }
+  .server-filter-button { font-size: 13px; }
+}
+
+/* ===== v27: mobile fonts -1px (same idea as PC v25/v26) =====
+   Mobile: row 12->11, name 12->11, Speed 11->10, meter 12->11,
+   badge 10->9, filter buttons 12->11 (base text-xs; height is fixed
+   h-8 so button boxes do not move). <=374px: Speed/meter 10->9.
+   Rows stay pinned by min-height 28px; smaller text only adds slack. ===== */
+@media (width<=767px) {
+  .server-card .compact-card-hit { font-size: 11px; }
+  .compact-card-name { font-size: 11px; }
+  .compact-card-speed-head, .compact-card-speed { font-size: 10px; }
+  .compact-card-meter { font-size: 11px; }
+  .compact-card-badge { font-size: 9px; }
+  .server-filter-button { font-size: 11px; }
+}
+@media (width<=374px) {
+  .compact-card-speed { font-size: 9px; }
+  .compact-card-meter { font-size: 9px; }
+}
+
+/* ===== v28: dark mode top dot-matrix removed =====
+   Two dot textures live at the top of the page: the header bar's own
+   dot grid (.once-header) and the dot-grid overlay fading over the top
+   of the wallpaper (.once-backdrop:before, masked to the top 32%).
+   Both are turned off in dark mode only. Background images only, so
+   no box moves; the wallpaper itself and the body dot grid elsewhere
+   are untouched. ===== */
+.dark .once-backdrop:before { background-image: none !important; }
+.dark .once-header { background-image: none !important; }
+
+/* ===== v29: light mode macOS UI (mirrors the dark macOS section) =====
+   Light mode = no .dark class, so these are scoped with html:not(.dark).
+   Colors only, zero dimension changes. Site-name rainbow and stat-bar
+   multicolor are deliberately untouched (restored per user in v24). ===== */
+html:not(.dark) { --meter-fill: #34C759; }
+/* Light window material + window corners + light window shadow */
+html:not(.dark) .server-node-list {
+  background-color: rgba(255, 255, 255, 0.75) !important;
+  background-image: none !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  border-color: rgba(0, 0, 0, 0.10) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+}
+html:not(.dark) .server-node-list > .compact-card-head,
+html:not(.dark) .server-node-list > article.server-card { background-image: none !important; }
+/* Rows: white fill + hairlines + macOS list hover */
+html:not(.dark) .server-node-list > article.server-card {
+  background-color: rgba(255, 255, 255, 0.65) !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+  box-shadow: none !important;
+}
+html:not(.dark) .server-node-list > article.server-card:hover { background-color: rgba(0, 0, 0, 0.04) !important; }
+/* Labels: near-black + macOS secondary gray */
+html:not(.dark) .compact-card-head { color: rgba(60, 60, 67, 0.6) !important; }
+html:not(.dark) .server-card .compact-card-hit { color: #1D1D1F !important; }
+/* Busy/fast row names: solid label color (mirrors the dark rule) */
+html:not(.dark) .server-card .nz-shine-busy, html:not(.dark) .server-card .nz-shine-fast {
+  color: #1D1D1F !important; background: none !important;
+  -webkit-text-fill-color: #1D1D1F !important; filter: none !important; text-shadow: none !important;
+}
+/* Status dots: macOS light system green / red */
+html:not(.dark) .status-dot-core { background: #34C759 !important; box-shadow: none !important; }
+html:not(.dark) .status-dot[data-status="offline"] .status-dot-core { background: #FF3B30 !important; }
+/* macOS light push buttons: white-to-gray gradient; active = blue gradient */
+html:not(.dark) .server-filter-button {
+  background: linear-gradient(180deg, #FFFFFF, #F5F5F7) !important;
+  border-color: rgba(0, 0, 0, 0.12) !important;
+  color: #1D1D1F !important;
+  border-radius: 8px !important;
+}
+html:not(.dark) .server-filter-button[aria-pressed="true"] {
+  background: linear-gradient(180deg, #2E9BFF, #0A6CFF) !important;
+  border-color: transparent !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+}
+/* Search field: macOS light gray */
+html:not(.dark) .server-search input {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+  border-color: transparent !important;
+  color: #000000 !important;
+}
+html:not(.dark) .server-search input::placeholder { color: rgba(60, 60, 67, 0.6) !important; }
+/* Map tip: macOS light popover */
+html:not(.dark) .dot-map-tip {
+  background: rgba(255, 255, 255, 0.85) !important;
+  border-color: rgba(0, 0, 0, 0.10) !important;
+  color: #000000 !important;
+  border-radius: 10px !important;
+}
+/* Detail drawer: light side panel */
+html:not(.dark) .server-detail-drawer {
+  background: rgba(255, 255, 255, 0.88) !important;
+  border-left-color: rgba(0, 0, 0, 0.10) !important;
+  box-shadow: -12px 0 32px rgba(0, 0, 0, 0.15) !important;
+}
+html:not(.dark) .server-detail-head { background: transparent !important; }
+html:not(.dark) .system-detail-card {
+  background-color: rgba(255, 255, 255, 0.65) !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+  border-radius: 12px !important;
+}
+html:not(.dark) .detail-group h4 { color: #000000 !important; }
+html:not(.dark) .server-detail-drawer a { color: #007AFF !important; }
+/* Latency range tabs + monitor chips: macOS light */
+html:not(.dark) .monitor-range-tab {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+  border-color: rgba(0, 0, 0, 0.10) !important;
+  color: rgba(60, 60, 67, 0.85) !important;
+}
+html:not(.dark) .monitor-range-tab[aria-pressed="true"] {
+  background: linear-gradient(180deg, #2E9BFF, #0A6CFF) !important;
+  border-color: transparent !important;
+  color: #ffffff !important;
+}
+html:not(.dark) .monitor-chip {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+  border-color: rgba(0, 0, 0, 0.10) !important;
+  color: rgba(60, 60, 67, 0.85) !important;
+}
+/* Chart chrome: neutral macOS light grays (series colors untouched) */
+html:not(.dark) .recharts-cartesian-axis-tick text { fill: rgba(60, 60, 67, 0.6) !important; }
+html:not(.dark) .recharts-cartesian-grid line { stroke: rgba(0, 0, 0, 0.08) !important; }
+html:not(.dark) .recharts-default-tooltip, html:not(.dark) .recharts-tooltip-content {
+  background: rgba(255, 255, 255, 0.92) !important;
+  border-color: rgba(0, 0, 0, 0.10) !important;
+  border-radius: 10px !important;
+}
+/* Floating tool buttons: frosted light */
+html:not(.dark) .once-tool-button {
+  background: rgba(255, 255, 255, 0.70) !important;
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border-color: rgba(0, 0, 0, 0.10) !important;
+  color: #000000 !important;
+}
+/* Top dot textures off in light mode too (mirrors v28) */
+html:not(.dark) .once-backdrop:before { background-image: none !important; }
+html:not(.dark) .once-header { background-image: none !important; }
+/* macOS light overlay scrollbars (no layout impact) */
+html:not(.dark) ::-webkit-scrollbar { width: 8px; height: 8px; }
+html:not(.dark) ::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.25); border-radius: 4px; }
+html:not(.dark) ::-webkit-scrollbar-track { background: transparent; }
+
+/* ===== v30: light mode transparency made visible =====
+   Why light looked solid: the theme veils the wallpaper itself with a
+   42% white layer in light mode, and the header bar was 94% white
+   (#fffffff0). Panel 75% white on top of that read as opaque. Fix:
+   panel 75%->60% white, header -> 65% white + stronger blur, drawer
+   88%->80% white. Blur keeps text readable over the wallpaper. ===== */
+html:not(.dark) .server-node-list { background-color: rgba(255, 255, 255, 0.60) !important; }
+html:not(.dark) .once-header {
+  background-color: rgba(255, 255, 255, 0.65) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+}
+html:not(.dark) .server-detail-drawer { background: rgba(255, 255, 255, 0.80) !important; }
+
+/* ===== v31: light glass, second pass =====
+   v30 still read near-white in the data area because the rows sit ON
+   the panel: panel 60% white + rows 65% white = ~86% white over the
+   blurred wallpaper. Fix: rows go transparent (hairlines + hover
+   stay, so the list structure is unchanged) and the panel drops to
+   50% white, so the whole table shows the frosted tint. Black text
+   on the light blurred wash stays readable. ===== */
+html:not(.dark) .server-node-list { background-color: rgba(255, 255, 255, 0.50) !important; }
+html:not(.dark) .server-node-list > article.server-card { background-color: transparent !important; }
+html:not(.dark) .server-node-list > article.server-card:hover { background-color: rgba(0, 0, 0, 0.04) !important; }
+
+/* ===== v32: stat-bar macOS text rendering, colors KEPT =====
+   Only rendering changes, no color changes: antialiased smoothing on
+   all stat-bar text, and the black drop-shadow outline removed from
+   the shine spans (that outline is what makes the gradient text look
+   non-mac). Gradient colors, multicolor numbers and the shine
+   animation itself are untouched. ===== */
+.stat-bar-v190, .stat-bar-v190 * {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+.dark .stat-bar-v190 .nz-shine-up, .dark .stat-bar-v190 .nz-shine-down, .dark .stat-bar-v190 .nz-shine-busy, .dark .stat-bar-v190 .nz-shine-fast {
+  filter: none !important;
+  text-shadow: none !important;
+}
+/* v33 refinement: light mode KEEPS the black outline (gradient text
+   over vivid wallpaper needs it); only dark mode drops it. Smoothing
+   stays in both modes. */
+
+/* ===== v34: light mode top-bar ALL text gets the black edge =====
+   The top bar = header, which holds the brand span + the stat bar
+   (all its text lives in spans). The drop-shadow stack must sit on
+   the text elements themselves (a filter on a container would outline
+   the whole block, not each glyph). Same 1px 4-direction stack the
+   theme already uses for the shine texts, so the edge matches.
+   Dark mode untouched (its shine texts stay outline-free per v33). ===== */
+html:not(.dark) .brand-rainbow,
+html:not(.dark) .stat-bar-v190 span {
+  filter: drop-shadow(1px 0 #000) drop-shadow(-1px 0 #000) drop-shadow(0 1px #000) drop-shadow(0 -1px #000) !important;
+}
+
+/* ===== v35: filter buttons — frosted glass + shadow (user feedback
+   2026-10-24: the group tags were hard to read). The dark-mode
+   unselected button was a 4-12% white wash: near-white text on near-
+   transparent glass over a bright wallpaper washed out completely.
+   Unselected buttons now sit on a real frosted pane (blur + tint +
+   drop shadow); the pressed blue gradient is left as it was. ===== */
+.dark .server-filter-button:not([aria-pressed="true"]) {
+  background: rgba(28, 28, 30, 0.55) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  backdrop-filter: blur(16px) saturate(160%);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+html:not(.dark) .server-filter-button:not([aria-pressed="true"]) {
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  backdrop-filter: blur(16px) saturate(160%);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+}
+
+/* ===== v36: filter buttons, light mode — same frosted treatment as
+   dark got in v35 (user feedback 2026-10-24: the light tags too).
+   The opaque white gradient read as flat stickers on the glass;
+   unselected buttons are now translucent white frost over the
+   wallpaper with a deeper shadow, near-black text unchanged. ===== */
+html:not(.dark) .server-filter-button:not([aria-pressed="true"]) {
+  background: rgba(255, 255, 255, 0.45) !important;
+  border-color: rgba(0, 0, 0, 0.10) !important;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.65) !important;
+}
+
+/* One-line stat bar capsule in the filter row: a frosted pill in the spirit
+   of the group filter blocks, so the shine text stays readable over the
+   wallpaper. Height matches the filter buttons (36px). */
+.stat-line-capsule {
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: linear-gradient(180deg, rgba(28, 28, 30, 0.55), rgba(28, 28, 30, 0.45));
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+}
+html:not(.dark) .stat-line-capsule {
+  border-color: rgba(0, 0, 0, 0.12);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.45));
+}
+
+/* Inline expansion, wide screens: the four overview groups share one row
+   instead of two stacked pairs (user-directed). */
+@container (min-width: 900px) {
+  .system-detail-card { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .system-detail-card .detail-groups { display: contents; }
+  .system-detail-card .detail-groups + .detail-groups { border-top: 0; }
+  .system-detail-card .detail-groups:first-of-type .detail-group + .detail-group,
+  .system-detail-card .detail-groups:last-of-type .detail-group { border-left: 1px solid var(--border); }
+}
+
+/* Mobile legend squeezed to one row: if it still overflows it scrolls
+   sideways instead of wrapping or clipping. */
+@media (max-width: 767px) {
+  .latency-legend { overflow-x: auto; scrollbar-width: none; }
+  .latency-legend::-webkit-scrollbar { display: none; }
+}
+
+/* Speed row: never clip with an ellipsis — when the pair does not fit,
+   the upload half wraps onto its own line (user-flagged). */
+.system-detail-card .detail-group [data-line-label="网速"] > .tnum {
+  white-space: normal !important;
+  overflow: visible;
+  text-overflow: clip;
+}
+
+
+
+/* 田 grid sizes, user-set (labels 9px, values 10px). One gated block with
+   !important so it holds across the base and Tier rules alike; column
+   widths and the sink/ellipsis machinery are untouched. */
+@media (max-width: 700px) {
+  .system-detail-card .detail-group { font-size: 9.6px !important; }
+  .system-detail-card .detail-group [data-line-label] > span:first-child { font-size: 9px !important; }
+}
+
+/* 田 grid: one label-column width for all four groups (user-directed), so
+   every group's values start on the same line — Resources previously sat
+   on a narrower column than Service and its values started further left. */
+@media (max-width: 700px) {
+  .system-detail-card .detail-group .space-y-1 > div {
+    grid-template-columns: 44px minmax(0, 1fr) !important;
+  }
+  .system-detail-card > .detail-groups:first-of-type > .detail-group:first-child .space-y-1 > div,
+  .system-detail-card > .detail-groups:first-of-type > .detail-group:last-child .space-y-1 > div,
+  .system-detail-card > .detail-groups:last-of-type > .detail-group:last-child .space-y-1 > div {
+    grid-template-columns: 44px minmax(0, 1fr) !important;
+  }
+}
+
+
+/* ============ FLAT (2026-10-25): no shadows, gradients, blur or gloss ============
+   Applies to desktop and mobile alike. Kept on purpose: wallpaper photo,
+   rainbow logo + stat-bar multicolour (restored per user in v24), focus
+   rings, dot-grid textures, pulse motion. */
+:root {
+  --bar-ok: var(--once-moss-500);
+  --bar-warn: var(--once-orange-500);
+  --bar-danger: oklch(0.6930 0.1970 27.63);
+  --dot-online: var(--once-green-600);
+  --dot-offline: oklch(0.6930 0.1970 27.63);
+  --nav: #ffffff;
+  --tag-active-shadow: none;
+}
+.dark {
+  --nav: #181818;
+  --tag-active-shadow: none;
+}
+.once-backdrop { background: url("https://v2.xxapi.cn/api/random4kPic?type=wallpaper&return=302") center / cover no-repeat, #ffffff; }
+.dark .once-backdrop { background: url("https://v2.xxapi.cn/api/random4kPic?type=wallpaper&return=302") center / cover no-repeat, var(--once-gray-100); }
+.once-header, .server-detail-head, .server-filter-button, .nz-ip-card, .once-tool-button,
+.stat-line-capsule, .dark .recharts-default-tooltip, .dark .recharts-tooltip-content,
+html:not(.dark) .recharts-default-tooltip, html:not(.dark) .recharts-tooltip-content {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.once-header { background-color: var(--nav); }
+html:not(.dark) .once-header { background-color: #ffffff !important; }
+.server-detail-head { background: var(--background) !important; }
+.server-status-filters, .node-picker > input, .monitor-node-link, .monitor-range-tab, .monitor-chip,
+.dark .server-summary-card, .dark .server-node-list > .server-card, .dark .server-empty-state, .dark .node-picker,
+.dark .monitor-overview, .dark .monitor-chart-card, .dark .system-detail-card, .dark .latency-float-card,
+.dark .server-search input, .dark .server-sort-select, .dark .server-sort-direction, .dark .server-status-filters,
+.dark .node-picker > input, .dark .monitor-node-link,
+.server-detail-drawer, .once-tool-button, .nz-ip-card,
+.status-dot[data-status="online"] .status-dot-core, .status-dot[data-status="offline"] .status-dot-core {
+  background-image: none !important;
+  box-shadow: none !important;
+}
+.nz-ip-card { background: #0f172a !important; text-shadow: none !important; }
+.dark .server-node-list { background-color: #1e1e20 !important; box-shadow: none !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+html:not(.dark) .server-node-list { background-color: #ffffff !important; box-shadow: none !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+.dark .server-filter-button:not([aria-pressed="true"]) { background: rgb(28, 28, 30) !important; text-shadow: none !important; }
+.dark .server-filter-button { background: rgba(255, 255, 255, 0.04) !important; }
+.dark .server-filter-button[aria-pressed="true"] { background: #0A6CFF !important; }
+.stat-line-capsule { background: rgb(28, 28, 30) !important; }
+html:not(.dark) .stat-line-capsule { background: #ffffff !important; }
+.dark .recharts-default-tooltip, .dark .recharts-tooltip-content { background: #1e1e20 !important; }
+html:not(.dark) .recharts-default-tooltip, html:not(.dark) .recharts-tooltip-content { background: #ffffff !important; }
+.dark .once-tool-button { background: #1e1e20 !important; }
+html:not(.dark) .once-tool-button { background: #ffffff !important; }
+html:not(.dark) .server-detail-drawer { background: #ffffff !important; }
+
+/* ============ FLAT2 (2026-10-25): desktop group pills + stat capsule -> 20px ============ */
+.server-filter-button { height: 20px !important; padding: 0 10px !important; line-height: 1 !important; display: inline-flex !important; align-items: center !important; gap: 4px !important; }
+.stat-line-capsule { height: 20px !important; padding: 0 10px !important; box-shadow: none !important; }
