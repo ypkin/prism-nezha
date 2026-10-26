@@ -174,27 +174,14 @@ function PlanTraffic({ node }: { node: Node }) {
 
   return (
     <span className="flex flex-col items-start gap-0.5">
-      <span className="grid w-full grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr] text-center text-muted-foreground">
-        <span>今日</span>
-        <span>/</span>
-        <span>本月</span>
-        <span>/</span>
-        <span>总计</span>
-        <span>/</span>
-        <span>剩余（GB）</span>
+      <span className="w-full whitespace-nowrap overflow-hidden text-ellipsis text-muted-foreground">
+        今日 / 本月 / 总计 / 剩余（GB）
       </span>
-      <span className="grid w-full grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr] text-center">
-        <span>{gbNum(today)}</span>
-        <span>/</span>
-        <span>{gbNum(month)}</span>
-        <span>/</span>
-        <span>{total > 0 ? gbNum(total) : "不限量"}</span>
-        <span>/</span>
-        <span>
-          {total > 0 && remaining !== null
-            ? (remaining >= 0 ? gbNum(remaining) : `已超 ${gbNum(-remaining)}`)
-            : "不限量"}
-        </span>
+      <span className="w-full whitespace-nowrap overflow-hidden text-ellipsis">
+        {gbNum(today)}{" / "}{gbNum(month)}{" / "}{total > 0 ? gbNum(total) : "不限量"}{" / "}
+        {total > 0 && remaining !== null
+          ? (remaining >= 0 ? gbNum(remaining) : `已超 ${gbNum(-remaining)}`)
+          : "不限量"}
       </span>
       {editing ? (
         <span className="inline-flex flex-col gap-1">
