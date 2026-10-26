@@ -51,9 +51,14 @@ export function axisBytes(v: number): string {
  * in GB. Same decimal rule as bytes() (100+ none, 10+ one, else two),
  * with a trailing ".0" trimmed so 200 GB does not print as 200.0 GB. */
 export function gb(n: number): string {
-  if (!n || n < 1) return "0GB"
+  return `${gbNum(n)}GB`
+}
+
+/** The number part of gb(): the header row already declares the unit. */
+export function gbNum(n: number): string {
+  if (!n || n < 1) return "0"
   const v = n / 1024 ** 3
-  return `${parseFloat(v.toFixed(v >= 100 ? 0 : v >= 10 ? 1 : 2))}GB`
+  return `${parseFloat(v.toFixed(v >= 100 ? 0 : v >= 10 ? 1 : 2))}`
 }
 
 /** Speed text: units are only K or M (never B, GB, or "/s"). */

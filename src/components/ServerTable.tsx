@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { V190StatBar } from "@/components/StatBar"
 import { calibrateUsage, usagePasswordSet, type Node } from "@/lib/api"
 import {
-  billingCycle, bytes, compact, daysUntil, dayUsage, distro, gb, money, monthUsage, osName, cpuName, pair,
+  billingCycle, bytes, compact, daysUntil, dayUsage, distro, gbNum, money, monthUsage, osName, cpuName, pair,
   parseTraffic, percent, rate, uptime,
 } from "@/lib/format"
 import { readListPreferences, saveListPreferences, selectNodes, type NodeSortKey } from "@/lib/node-list"
@@ -181,18 +181,18 @@ function PlanTraffic({ node }: { node: Node }) {
         <span>/</span>
         <span>总计</span>
         <span>/</span>
-        <span>剩余</span>
+        <span>剩余（GB）</span>
       </span>
       <span className="grid w-full grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr] text-center">
-        <span>{gb(today)}</span>
+        <span>{gbNum(today)}</span>
         <span>/</span>
-        <span>{gb(month)}</span>
+        <span>{gbNum(month)}</span>
         <span>/</span>
-        <span>{total > 0 ? gb(total) : "不限量"}</span>
+        <span>{total > 0 ? gbNum(total) : "不限量"}</span>
         <span>/</span>
         <span>
           {total > 0 && remaining !== null
-            ? (remaining >= 0 ? gb(remaining) : `已超 ${gb(-remaining)}`)
+            ? (remaining >= 0 ? gbNum(remaining) : `已超 ${gbNum(-remaining)}`)
             : "不限量"}
         </span>
       </span>
