@@ -109,6 +109,12 @@ function Line({ label, wide, wrap, children }: { label: string; wide?: boolean; 
   )
 }
 
+function L({ label, children, wrap, wide }: { label: string; children: ReactNode; wrap?: boolean; wide?: boolean }) {
+  return (
+    <Line label={label} wide={wide} wrap={wrap}>{children}</Line>
+  )
+}
+
 function DetailGroup({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="detail-group min-w-0">
@@ -280,9 +286,6 @@ function Details({ node }: { node: Node }) {
     })
     if (found.length) setWideLabels((prev) => new Set([...prev, ...found]))
   })
-  const L = ({ label, children, wrap }: { label: string; children: ReactNode; wrap?: boolean }) => (
-    <Line label={label} wide={wideLabels.has(label)} wrap={wrap}>{children}</Line>
-  )
 
   return (
     <div className="space-y-3 text-[13px] leading-6">
@@ -336,37 +339,37 @@ function Details({ node }: { node: Node }) {
       <section ref={cardRef} className="detail-float-card system-detail-card rounded-2xl border">
         <div className="detail-groups grid gap-0">
           <DetailGroup title="系统信息">
-            <L label="系统">
+            <L label="系统" wide={wideLabels.has("系统")}>
               <span className="inline-flex items-center gap-1.5 align-middle">
                 <OsIcon os={node.os} className="detail-os-icon" />
                 {[osName(node.os), node.kernel].filter(Boolean).join(" · ") || "—"}
               </span>
             </L>
-            <L label="架构">
+            <L label="架构" wide={wideLabels.has("架构")}>
               {[node.arch, node.virt !== "none" && node.virt, node.agent_version && `agent ${node.agent_version}`]
                 .filter(Boolean)
                 .join(" · ") || "—"}
             </L>
-            <L label="处理器">
+            <L label="处理器" wide={wideLabels.has("处理器")}>
               {node.cpu_name ? `${cpuName(node.cpu_name).replace(/\s@\s.*$/, "")} × ${node.cpu_cores}` : `${node.cpu_cores} 核`}
               {m && ` (${m.cpu.toFixed(1)}%)`}
             </L>
-            <L label="在线">{node.online ? (m ? uptime(m.uptime) : "等待数据") : away === null ? "从未上报" : away >= 60 ? uptime(away) : "刚刚"}</L>
+            <L label="在线" wide={wideLabels.has("在线")}>{node.online ? (m ? uptime(m.uptime) : "等待数据") : away === null ? "从未上报" : away >= 60 ? uptime(away) : "刚刚"}</L>
           </DetailGroup>
 
           <DetailGroup title="资源">
-            <L label="内存">{m ? usage(m.mem_used, m.mem_total) : bytes(node.mem_total)}</L>
-            <L label="交换">
+            <L label="内存" wide={wideLabels.has("内存")}>{m ? usage(m.mem_used, m.mem_total) : bytes(node.mem_total)}</L>
+            <L label="交换" wide={wideLabels.has("交换")}>
               {node.swap_total > 0 ? (m ? usage(m.swap_used, m.swap_total) : bytes(node.swap_total)) : "未启用"}
             </L>
-            <L label="磁盘">{m ? usage(m.disk_used, m.disk_total) : bytes(node.disk_total)}</L>
-            <L label="负载">{m ? m.load.map((n) => n.toFixed(2)).join(" / ") : "—"}</L>
+            <L label="磁盘" wide={wideLabels.has("磁盘")}>{m ? usage(m.disk_used, m.disk_total) : bytes(node.disk_total)}</L>
+            <L label="负载" wide={wideLabels.has("负载")}>{m ? m.load.map((n) => n.toFixed(2)).join(" / ") : "—"}</L>
           </DetailGroup>
         </div>
         <div className="detail-groups grid gap-0">
           <DetailGroup title="网络与连接">
-            <L label="进程">{m ? `${m.procs} · TCP ${m.tcp} · UDP ${m.udp}` : "—"}</L>
-            <L label="网速">
+            <L label="进程" wide={wideLabels.has("进程")}>{m ? `${m.procs} · TCP ${m.tcp} · UDP ${m.udp}` : "—"}</L>
+            <L label="网速" wide={wideLabels.has("网速")}>
               {m ? (
                 <>
                   <span className="whitespace-nowrap">↓ {rate(m.net_rx)}</span>{" "}
@@ -374,32 +377,32 @@ function Details({ node }: { node: Node }) {
                 </>
               ) : "—"}
             </L>
-            <L label="总流量">{flow(node.total_rx, node.total_tx)}</L>
+            <L label="总流量" wide={wideLabels.has("总流量")}>{flow(node.total_rx, node.total_tx)}</L>
             {(node.ipv4 || node.ipv6) && (
-              <L label="网络栈">
+              <L label="网络栈" wide={wideLabels.has("网络栈")}>
                 {node.ipv4 && node.ipv6 ? "双栈 (IPv4 + IPv6)" : node.ipv4 ? "仅 IPv4" : "仅 IPv6"}
               </L>
             )}
           </DetailGroup>
 
           <DetailGroup title="套餐">
-            <L label="价格">
+            <L label="价格" wide={wideLabels.has("价格")}>
               {node.price > 0 ? `${money(node.price, node.currency)} / ${cycleZh(billingCycle(node.billing_cycle))}` : "免费"}
             </L>
-            <L label="到期">
+            <L label="到期" wide={wideLabels.has("到期")}>
               {node.expires_at
                 ? `${node.expires_at} (${days !== null && days < 0 ? `已过期 ${-days} 天` : `剩 ${days} 天`})`
                 : "无到期"}
             </L>
             {node.traffic_mode && (
-              <L label="计费">
+              <L label="计费" wide={wideLabels.has("计费")}>
                 {{ sum: "双向", up: "单向 · 仅上行", down: "单向 · 仅下行", max: "双向 · 取大值" }[node.traffic_mode] ?? node.traffic_mode}
               </L>
             )}
             {node.traffic_limit !== 0 && (
-              <L label="套餐流量" wrap><PlanTraffic node={node} /></L>
+              <L label="套餐流量" wide={wideLabels.has("套餐流量")} wrap><PlanTraffic node={node} /></L>
             )}
-            {node.traffic_reset_day > 0 && <L label="流量重置">每月 {node.traffic_reset_day} 号</L>}
+            {node.traffic_reset_day > 0 && <L label="流量重置" wide={wideLabels.has("流量重置")}>每月 {node.traffic_reset_day} 号</L>}
           </DetailGroup>
         </div>
       </section>
