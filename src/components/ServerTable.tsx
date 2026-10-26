@@ -174,22 +174,22 @@ function PlanTraffic({ node }: { node: Node }) {
 
   return (
     <span className="flex flex-col items-start gap-0.5">
-      <span className="whitespace-nowrap">今日已用：{gb(today)}</span>
-      <span className="whitespace-nowrap">本月已用：{gb(month)}</span>
-      {total > 0 && (
-        <>
-          <span className="whitespace-nowrap">共计流量：{gb(total)}</span>
-          <span className="whitespace-nowrap">
-            {remaining !== null && (remaining >= 0 ? `剩余流量：${gb(remaining)}` : `剩余流量：已超 ${gb(-remaining)}`)}
-          </span>
-        </>
-      )}
-      {total < 0 && (
-        <>
-          <span className="whitespace-nowrap">共计流量：不限量</span>
-          <span className="whitespace-nowrap">剩余流量：不限量</span>
-        </>
-      )}
+      <span className="grid w-full grid-cols-4 text-center text-muted-foreground">
+        <span>今日</span>
+        <span>本月</span>
+        <span>总计</span>
+        <span>剩余</span>
+      </span>
+      <span className="grid w-full grid-cols-4 text-center">
+        <span>{gb(today)}</span>
+        <span>{gb(month)}</span>
+        <span>{total > 0 ? gb(total) : "不限量"}</span>
+        <span>
+          {total > 0 && remaining !== null
+            ? (remaining >= 0 ? gb(remaining) : `已超 ${gb(-remaining)}`)
+            : "不限量"}
+        </span>
+      </span>
       {editing ? (
         <span className="inline-flex flex-col gap-1">
           <span className="inline-flex flex-nowrap items-center gap-1">
