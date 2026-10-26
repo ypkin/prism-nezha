@@ -157,7 +157,7 @@ function PlanTraffic({ node }: { node: Node }) {
     }
     setError(null)
     setSaving(true)
-    const result = await calibrateUsage(node.id, v, node.total_rx, node.total_tx, password, newPassword, resetDay)
+    const result = await calibrateUsage(node.id, v, node.traffic_mode, password, newPassword, resetDay)
     setSaving(false)
     if (result === "wrong-password") { setError("密码不对"); setPasswordSet(true); return }
     if (result !== "ok") { setError("保存失败，请重试"); return }

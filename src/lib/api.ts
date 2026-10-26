@@ -359,12 +359,18 @@ function ensureSnapshot(maxAgeMs: number, signal?: AbortSignal): Promise<Node[]>
 /* ---------- month/day traffic accumulation (from lifetime counters) ---------- */
 
 /*
- * The period baseline lives on the VPS usage store (`/usage/`, same origin,
- * proxied to a small service next to the frontend) so every device sees the
- * same period and a cleared browser cache cannot reset the period to zero.
- * localStorage keeps the same records as a fallback for when the store is
- * unreachable (dev, or the service down): the page still works, it just
- * falls back to this browser's own baseline.
+ * Month/day usage is accounted by the resident collector service behind
+ * `/usage/` (same origin, proxied to a small service next to the
+ * frontend): it polls the panel once a minute and owns period, restart
+ * and day handling, so a closed page loses nothing. The page only adds
+ * the live delta since the collector's last poll, keeping the numbers
+ * live between polls, and refreshes the collector records at most once
+ * a minute (rollovers, re-alignments and calibrations arrive that way).
+ *
+ * localStorage keeps browser-side baselines as a fallback for when the
+ * store is unreachable (dev, or the service down): the page still works,
+ * it just falls back to this browser's own accumulation, with the same
+ * banking-on-restart the collector model replaced.
  *
  * `used` is the metered usage already banked at the baseline: the user can
  * align it (calibrate) to an external figure, and from then on the display
@@ -395,31 +401,48 @@ let trafficSaveAt = 0
 
 /* ---------- VPS usage store ---------- */
 
-type UsageRecord = { period: string; rx_base: number; tx_base: number; used_base: number; reset_day: number }
-let vpsUsage: Record<string, UsageRecord> | null = null
+type CollectorRecord = {
+  last_rx: number; last_tx: number
+  month_rx: number; month_tx: number
+  day_rx: number; day_tx: number
+  month_start: string; day_start: string; reset_day: number
+}
+const isCollectorRecord = (r: unknown): r is CollectorRecord =>
+  !!r && typeof r === "object" &&
+  typeof (r as CollectorRecord).last_rx === "number" &&
+  typeof (r as CollectorRecord).month_rx === "number" &&
+  typeof (r as CollectorRecord).day_rx === "number"
+let vpsUsage: Record<string, CollectorRecord> | null = null
 /** Whether the store has a calibration password (null = store not reached yet). */
 let vpsPasswordSet: boolean | null = null
 export function usagePasswordSet(): boolean | null { return vpsPasswordSet }
 let vpsUsageStarted = false
-let vpsUsageMerged = false
-let vpsSyncAt = 0
-const calibratedKeys = new Set<string>()
+let vpsUsageLoaded = false
+let vpsFetchAt = 0
 // Previous push's month_used per node: on a counter drop (agent restart)
-// this is the accrued usage the new baseline must preserve.
+// this is the accrued usage the new baseline must preserve (legacy path).
 const lastMonthUsed: Record<string, number> = {}
+
+async function fetchVpsUsage(): Promise<void> {
+  try {
+    const res = await fetch("/usage/", { signal: AbortSignal.timeout(3000) })
+    if (!res.ok) throw new Error(`usage store ${res.status}`)
+    const data = await res.json() as { nodes?: Record<string, CollectorRecord>; password_set?: boolean }
+    vpsUsage = data.nodes && typeof data.nodes === "object" ? data.nodes : {}
+    vpsPasswordSet = typeof data.password_set === "boolean" ? data.password_set : false
+  } catch {
+    // On a refresh failure keep the previous records: the page keeps
+    // showing them plus the live delta until the service is back. Only
+    // the very first load reports the store as unreachable.
+    if (!vpsUsageLoaded) vpsUsage = null
+  }
+  vpsUsageLoaded = true
+}
 
 function loadVpsUsage(): void {
   if (vpsUsageStarted) return
   vpsUsageStarted = true
-  void (async () => {
-    try {
-      const res = await fetch("/usage/", { signal: AbortSignal.timeout(3000) })
-      if (!res.ok) throw new Error(`usage store ${res.status}`)
-      const data = await res.json() as { nodes?: Record<string, UsageRecord>; password_set?: boolean }
-      vpsUsage = data.nodes && typeof data.nodes === "object" ? data.nodes : {}
-      vpsPasswordSet = typeof data.password_set === "boolean" ? data.password_set : false
-    } catch { vpsUsage = null }
-  })()
+  void fetchVpsUsage()
 }
 
 async function postUsage(path: string, body: unknown): Promise<number> {
@@ -434,43 +457,33 @@ async function postUsage(path: string, body: unknown): Promise<number> {
   } catch { return 0 }
 }
 
-function usageRecordOf(base: TrafficBase): UsageRecord {
-  return { period: base.p, rx_base: base.mrx, tx_base: base.mtx, used_base: base.used, reset_day: base.reset_day }
-}
-
 /**
  * User alignment: set this period's used amount; the display accumulates
- * upward from it. `resetDay` (1-31, 0 = keep the current one) anchors the
- * period at that day of the month. `password` must match the store's
- * calibration password once one exists; `newPassword`, when non-empty,
- * becomes (or replaces) that password. The password itself is never kept
- * in the browser.
+ * upward from it. The service splits the figure into month_rx/month_tx
+ * by the plan's metering mode and stamps the current period, so the next
+ * collection accumulates on top of it instead of discarding it.
+ * `resetDay` (1-31, 0 = keep the current one) anchors the period at that
+ * day of the month. `password` must match the store's calibration
+ * password once one exists; `newPassword`, when non-empty, becomes (or
+ * replaces) that password. The password itself is never kept in the
+ * browser.
  */
 export async function calibrateUsage(
-  id: number, usedBytes: number, totalRx: number, totalTx: number,
+  id: number, usedBytes: number, trafficMode: string,
   password: string, newPassword: string, resetDay: number,
 ): Promise<"ok" | "wrong-password" | "failed"> {
-  const now = new Date()
-  const pad = (n: number) => String(n).padStart(2, "0")
-  const period = periodKeyFor(now, resetDay)
-  const record: UsageRecord = { period, rx_base: totalRx, tx_base: totalTx, used_base: usedBytes, reset_day: resetDay }
   const status = await postUsage("/usage/calibrate", {
-    id: String(id), ...record,
+    id: String(id), used_bytes: usedBytes, traffic_mode: trafficMode, reset_day: resetDay,
     ...(password ? { password } : {}),
     ...(newPassword ? { new_password: newPassword } : {}),
   })
   if (status === 403) return "wrong-password"
   if (status !== 200) return "failed"
-  calibratedKeys.add(String(id))
-  trafficBases[String(id)] = {
-    p: period, mrx: totalRx, mtx: totalTx,
-    d: `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`, drx: totalRx, dtx: totalTx,
-    used: usedBytes, reset_day: resetDay,
-  }
-  if (!vpsUsage) vpsUsage = {}
-  vpsUsage[String(id)] = record
   if (newPassword) vpsPasswordSet = true
-  try { localStorage.setItem(TRAFFIC_KEY, JSON.stringify(trafficBases)) } catch { /* storage may be blocked */ }
+  // Pick the calibrated figures up promptly instead of waiting for the
+  // next minute's refresh.
+  vpsFetchAt = 0
+  void fetchVpsUsage()
   return "ok"
 }
 
@@ -479,26 +492,32 @@ function applyTraffic(nodes: Node[]): Node[] {
   const pad = (n: number) => String(n).padStart(2, "0")
   const dayKey = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`
   let dirty = false
-  // First push after the VPS store loads: adopt its current-period baselines
-  // (except nodes calibrated in this session, which are already newer).
-  if (vpsUsage !== null && !vpsUsageMerged) {
-    vpsUsageMerged = true
-    for (const node of nodes) {
-      const key = String(node.id)
-      const rec = vpsUsage[key]
-      if (!rec || calibratedKeys.has(key)) continue
-      const resetDay = rec.reset_day ?? 0
-      if (rec.period !== periodKeyFor(now, resetDay)) continue
-      trafficBases[key] = {
-        p: rec.period, mrx: rec.rx_base, mtx: rec.tx_base,
-        d: dayKey, drx: node.total_rx, dtx: node.total_tx, used: rec.used_base,
-        reset_day: resetDay,
-      }
-      dirty = true
-    }
-  }
   for (const node of nodes) {
     const key = String(node.id)
+    const rec = vpsUsage?.[key]
+    if (rec && isCollectorRecord(rec)) {
+      // Collector mode: the service owns period, restart and day
+      // handling; the page only adds the live delta since its last poll.
+      // A counter drop (agent restart between polls) floors the delta at
+      // zero, so the display holds the collector figure until the next
+      // refresh picks up the re-aligned baselines.
+      const drx = Math.max(0, node.total_rx - rec.last_rx)
+      const dtx = Math.max(0, node.total_tx - rec.last_tx)
+      node.month_rx = rec.month_rx + drx
+      node.month_tx = rec.month_tx + dtx
+      node.day_rx = rec.day_rx + drx
+      node.day_tx = rec.day_tx + dtx
+      node.month_used = monthUsage({ month_rx: node.month_rx, month_tx: node.month_tx, traffic_mode: node.traffic_mode })
+      // The reset day comes from the collector record, so the 流量重置 row lights up.
+      node.traffic_reset_day = rec.reset_day
+      if (node.metrics) {
+        node.metrics.month_rx = node.month_rx
+        node.metrics.month_tx = node.month_tx
+        node.metrics.total_rx = node.total_rx
+        node.metrics.total_tx = node.total_tx
+      }
+      continue
+    }
     let base = trafficBases[key]
     const periodKey = periodKeyFor(now, base?.reset_day ?? 0)
     if (!base || base.p !== periodKey) {
@@ -541,23 +560,11 @@ function applyTraffic(nodes: Node[]): Node[] {
     trafficSaveAt = Date.now()
     try { localStorage.setItem(TRAFFIC_KEY, JSON.stringify(trafficBases)) } catch { /* storage may be blocked */ }
   }
-  // VPS sync: immediate on dirty events, otherwise at most once a minute.
-  // The snapshot banks the current month_used into `used` and re-bases the
-  // counters, so an agent restart while the page is closed loses at most
-  // a minute of traffic instead of the whole banked period. Only nodes in
-  // this push are posted, so an offline node's stored record is untouched.
-  const nowMs = Date.now()
-  if (vpsUsage !== null && (dirty || nowMs - vpsSyncAt > 60000)) {
-    vpsSyncAt = nowMs
-    const dict: Record<string, UsageRecord> = {}
-    for (const node of nodes) {
-      const base = trafficBases[String(node.id)]
-      if (!base) continue
-      base.used = node.month_used ?? base.used
-      base.mrx = node.total_rx; base.mtx = node.total_tx
-      dict[String(node.id)] = usageRecordOf(base)
-    }
-    void postUsage("/usage/sync", { nodes: dict })
+  // Refresh the collector records at most once a minute; the next push
+  // picks up rollovers, re-alignments and calibrations.
+  if (Date.now() - vpsFetchAt > 60000) {
+    vpsFetchAt = Date.now()
+    void fetchVpsUsage()
   }
   return nodes
 }
