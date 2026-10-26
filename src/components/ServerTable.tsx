@@ -174,16 +174,22 @@ function PlanTraffic({ node }: { node: Node }) {
 
   return (
     <span className="flex flex-col items-start gap-0.5">
-      <span className="grid w-full grid-cols-4 text-center text-muted-foreground">
+      <span className="grid w-full grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr] text-center text-muted-foreground">
         <span>今日</span>
+        <span>/</span>
         <span>本月</span>
+        <span>/</span>
         <span>总计</span>
+        <span>/</span>
         <span>剩余</span>
       </span>
-      <span className="grid w-full grid-cols-4 text-center">
+      <span className="grid w-full grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr] text-center">
         <span>{gb(today)}</span>
+        <span>/</span>
         <span>{gb(month)}</span>
+        <span>/</span>
         <span>{total > 0 ? gb(total) : "不限量"}</span>
+        <span>/</span>
         <span>
           {total > 0 && remaining !== null
             ? (remaining >= 0 ? gb(remaining) : `已超 ${gb(-remaining)}`)
