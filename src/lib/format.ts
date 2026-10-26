@@ -47,8 +47,11 @@ export function axisBytes(v: number): string {
   return bytes(v, v / 1024 ** unit >= 100 ? 0 : 1).replace(".0 ", " ")
 }
 
+/** Speed text: units are only K or M (never B, GB, or "/s"). */
 export function rate(n: number): string {
-  return `${bytes(n, 1)}/s`
+  if (!n || n < 1) return "0K"
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)}K`
+  return `${(n / (1024 * 1024)).toFixed(1)}M`
 }
 
 /**
