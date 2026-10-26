@@ -100,9 +100,9 @@ export function OsIcon({ os, className }: { os: string; className?: string }) {
 
 
 
-function Line({ label, wide, children }: { label: string; wide?: boolean; children: ReactNode }) {
+function Line({ label, wide, wrap, children }: { label: string; wide?: boolean; wrap?: boolean; children: ReactNode }) {
   return (
-    <div data-line-label={label} className={`grid min-w-0 grid-cols-[8.4em_minmax(0,1fr)] gap-x-2${wide ? " line-wide" : ""}`}>
+    <div data-line-label={label} className={`grid min-w-0 grid-cols-[8.4em_minmax(0,1fr)] gap-x-2${wide ? " line-wide" : ""}${wrap ? " tnum-wrap" : ""}`}>
       <span className="whitespace-nowrap text-muted-foreground">{label}</span>
       <span className="tnum min-w-0 whitespace-nowrap text-foreground/95">{children}</span>
     </div>
@@ -280,8 +280,8 @@ function Details({ node }: { node: Node }) {
     })
     if (found.length) setWideLabels((prev) => new Set([...prev, ...found]))
   })
-  const L = ({ label, children }: { label: string; children: ReactNode }) => (
-    <Line label={label} wide={wideLabels.has(label)}>{children}</Line>
+  const L = ({ label, children, wrap }: { label: string; children: ReactNode; wrap?: boolean }) => (
+    <Line label={label} wide={wideLabels.has(label)} wrap={wrap}>{children}</Line>
   )
 
   return (
@@ -397,7 +397,7 @@ function Details({ node }: { node: Node }) {
               </L>
             )}
             {node.traffic_limit !== 0 && (
-              <L label="套餐流量"><PlanTraffic node={node} /></L>
+              <L label="套餐流量" wrap><PlanTraffic node={node} /></L>
             )}
             {node.traffic_reset_day > 0 && <L label="流量重置">每月 {node.traffic_reset_day} 号</L>}
           </DetailGroup>
